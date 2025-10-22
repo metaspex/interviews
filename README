@@ -1,0 +1,94 @@
+Warning: you need the Metaspex product to compile this application. Please contact us at info@metaspex.com to get access to the Metaspex product.
+
+Metaspex Interviews is a questionnaire/interview/survey appliance ("appliance" in the sense that it requires no programming).
+
+Interviews is an entire professional application counting:
+
+- 42 fully custom web services.
+- 54 ontology types with abundant use of inheritance (OOP) showing Metaspex's painless and valuable support for it.
+- A lot of payload types for web services.
+
+A demo of the application running can accessed from the link below:
+
+ https://www.youtube.com/watch?v=i-foQBBgaBk
+
+A more complete demo including looking at the questionnaires and localizations:
+
+ https://www.youtube.com/watch?v=ZPZ45B7UG6c
+
+The demos show that the total response time including the database is approximately 2 millisecond, a never-seen-before record for surveys. This is possible because Metaspex is not an ORM. It saves data directly into document databases.
+
+Some notable files to look at first:
+
+- include/interviews/ontology.hpp: the entire ontology for Interviews.
+- include/interviews/payloads.hpp: the payloads for the web services included.
+- src/server/services.cpp: the web services specifications for the application.
+
+As usual with Metaspex, you can see that the source code does not contain any SQL, any query language of any kind, no explicit memory management, no JSON anywhere and no database API. As a matter of fact, the ~54 MB binary obtained from compiling the solution can run on top of any of the databases we support, it is just a matter of updating the configuration file. Deployment is extremely simple, just copy the binary inside either Nginx or Apache (supplied by Metaspex distribution).
+
+Interviews is a very good example of the combination of object-oriented programming and generic programming.
+
+A questionnaire is a document (persisting in document databases as a single document), it contains a list of questions. The question type is a base type which is derived in the multiple various derived types needed to specify a survey. Ontology types use Metaspex templates to specify the attributes and relationships between types.
+
+Interviews data, containing the answers recorded for a respondent follow the same model. Localizations match all this too.
+
+The chaining logic is stored as JavaScript JSON values directly in the document,
+
+Adding new question types, their localizations and their recorded interview answers is very easy, it is just a matter of adding new types in the ontology. Web services payloads for the user interface to be presented questions and for it to submit respondent answers need OOP updates too. The compiler will not validate the Metaspex input as long as the specification is not complete.
+
+Interviews can run on any machine from a $15 Raspberry Pi Zero 2 to a laptop or of course on any large machine in the public cloud. It can leverage hundreds of cores without a single change in the binary application. It supports vertical and horizontal scalability with the closest match possible with linear performance as a function of the number of cores, thanks to the complete absence of a garbage collector.
+
+Interviews supports the following:
+
+- You can define a survey campaign with a start and and end.
+
+- The back end supports uploading whole questionnaires which have been edited offline. A questionnaire does not require any programming, it is a pure JSON document which can be put together with any JSON editor.
+
+- Questionnaires can be localized, the set of languages supported is the full extent of ISO 639 (~800 languages). Localizations operate as an overlay on questionnaires, allowing to localize questions text and choices labels. The whole UTF-8 Unicode spectrum can be used.
+  
+- When uploading questionnaires, the back end makes a set of checks, among which:
+  - All questions transitions bring to subsequent questions, never to previous questions.
+  - All questions (except the first one) are reachable, no orphan exists.
+  - All questions labels are unique.
+  
+- Chaining conditions can use the result of any answer to previous questions, with the full power of JavaScript expressions. In particular several previous questions answers can be checked with all comparison operators available in JavaScript, e.g. answer to age is higher than 50 and no colonoscopy exam was ever made. No programming needed, it operates pretty much like Excel formulas.
+
+- A question can have multiple transitions to different subsequent questions, based on different conditions.
+
+- Questions support:
+  - One choice.
+  - Multiple choices with or without a limit.
+  - Multiple choices with an exact number.
+  - Ranking choices with or without a limit.
+  - Ranking with an exact number.
+
+- Loops with unlimited nested levels are allowed.
+
+- Template questions can be defined to be stored in a template library, and reused in different questionnaires (e.g., demographics).
+
+- Surveys can be answered on one device and continued on another. States are stored in the back end.
+  
+- Interviews exposes HTTP JSON services (in and out) which can be interfaced with any GUI technology, including thin clients without much logic (e.g. a browser performing only display). All business logic is run in the back end.
+
+- Interviews conducts the interview and gives interactively the next question to be answered through a single service call.
+  Interviews evaluates the transition conditions with the fastest JavaScript interpreter available: V8.
+  The answer is submitted through another service call which yields the next question or reports that the interview is complete.
+
+- Campaigns can be created, they pertain to a given questionnaire, and have a start and an end. Interviews are performed within campaigns.
+
+- Interviews are stored, containing all the answers, including when incomplete. Interviews can be resumed at a later moment.
+
+- Interviews bear HTML-5 geolocation metadata on a per answer basis and also including the moment they were started and the moment they were last modified/completed.
+
+- Complete or incomplete interviews can be downloaded, either in the language the interview was conducted in or in a different language the person downloading the interview wants to see it. The download format is JSON, which makes the interview compatible with any client-side technology that needs to analyze the interview automatically.
+  
+- Interviews can list all the interviews of a given interviewee.
+
+- Interviews can list all interviews conducted by a given interviewer.
+
+- When a questionnaire has been used with at least one campaign, it is automatically locked to prevent modifications of the questionnaire or its localizations that would interfere with stored interviews.
+  
+- Interviews automates cloning of an entire questionnaire to make modifications to produce another one through simple adjustments after cloning.
+
+- Interviews can be retained for a duration to be defined in the configuration file or on a per-user community basis.
+
