@@ -16,7 +16,7 @@ A more complete demo including looking at the behind-the-scenes JSON questionnai
 
  https://www.youtube.com/watch?v=ZPZ45B7UG6c
 
-The demos show that the total response time including the database is approximately 2 milliseconds per answer, a never-seen-before record for surveys. This is possible because Metaspex is not an ORM. It saves data directly into document databases. The answer is validated during these 2 milliseconds (the GUI is not trusted). It is then stored, the JavaScript chaining logic executed to find the next question, and the next question is replied by the back end to the GUI with the localization chosen by the respondent. All this during the 2 milliseconds. Running the back end on a $15 Raspberry Pi Zero 2 is still at least 50x faster than solutions on the market.
+The demos show that the total response time including the database is approximately 2 milliseconds per answer, a never-seen-before record for surveys. This is possible because Metaspex is not an ORM. It saves data directly into document databases. The answer is validated during these 2 milliseconds (the GUI is not trusted). It is then stored, the JavaScript chaining logic executed to find the next question, and the next question is replied by the back end to the GUI with the localization chosen by the respondent. All this during the 2 milliseconds. Running the back end on a $15 Raspberry Pi Zero 2 is still at least 50x faster than existing solutions on the market.
 
 Some notable files to look at first:
 
