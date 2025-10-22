@@ -68,8 +68,6 @@ Interviews supports the following:
 
 - Template questions can be defined to be stored in a template library, and reused in different questionnaires (e.g., demographics).
 
-- Surveys can be answered on one device and continued on another. States are stored in the back end.
-  
 - Interviews exposes HTTP JSON services (in and out) which can be interfaced with any GUI technology, including thin clients without much logic (e.g. a browser performing only display). All business logic is run in the back end.
 
 - Interviews conducts the interview and gives interactively the next question to be answered through a single service call.
@@ -78,7 +76,7 @@ Interviews supports the following:
 
 - Campaigns can be created, they pertain to a given questionnaire, and have a start and an end. Interviews are performed within campaigns.
 
-- Interviews are stored, containing all the answers, including when incomplete. Interviews can be resumed at a later moment.
+- Interviews are stored, containing all the answers, including when incomplete. Interviews can be resumed at a later moment, even from a different device. States are stored in the back end.
 
 - Interviews bear HTML-5 geolocation metadata on a per answer basis and also including the moment they were started and the moment they were last modified/completed.
 
