@@ -8,11 +8,11 @@ Interviews is an entire professional application counting:
 - 54 ontology types with abundant use of inheritance (OOP) showing Metaspex's painless and valuable support for it.
 - A lot of payload types for web services.
 
-A demo of the application running can accessed from the link below:
+A demo of the application running can be accessed from the link below:
 
  https://www.youtube.com/watch?v=i-foQBBgaBk
 
-A more complete demo including looking at the questionnaires and localizations:
+A more complete demo including looking at the behind-the-scenes JSON questionnaires and localizations:
 
  https://www.youtube.com/watch?v=ZPZ45B7UG6c
 
