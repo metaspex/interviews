@@ -92,5 +92,5 @@ Interviews supports the following:
   
 - Interviews automates cloning of an entire questionnaire to make modifications to produce another one through simple adjustments after cloning.
 
-- Interviews can be retained for a duration to be defined in the configuration file or on a per-user community basis.
+- Survey respondents data can be retained for a duration to be defined in the configuration file or on a per-user community basis.
 
