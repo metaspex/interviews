@@ -4,7 +4,7 @@ Metaspex Interviews is a questionnaire/interview/survey appliance ("appliance" i
 
 Interviews is an entire professional application counting:
 
-- 42 fully custom web services.
+- 42 dedicated web services.
 - 54 ontology types with abundant use of inheritance (OOP) showing Metaspex's painless and valuable support for it.
 - A lot of payload types for web services.
 
