@@ -32,7 +32,9 @@ A questionnaire is a document (persisting in document databases as a single docu
 
 Interviews data, containing the answers recorded for a respondent follow the same model. Localizations match all this too.
 
-The chaining logic is stored as JavaScript JSON values directly in the document,
+The chaining logic is stored as JavaScript JSON values directly in the questionaire document.
+
+The GUI which can be seen in the demos is simple JavaScript code, which renders the questions automatically. No GUI design is necessary to support new questionnaires.
 
 Adding new question types, their localizations and their recorded interview answers is very easy, it is just a matter of adding new types in the ontology. Web services payloads for the user interface to be presented questions and for it to submit respondent answers need OOP updates too. The compiler will not validate the Metaspex input as long as the specification is not complete.
 
