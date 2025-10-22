@@ -90,7 +90,4 @@ Interviews supports the following:
 
 - When a questionnaire has been used with at least one campaign, it is automatically locked to prevent modifications of the questionnaire or its localizations that would interfere with stored interviews.
   
-- Interviews automates cloning of an entire questionnaire to make modifications to produce another one through simple adjustments after cloning.
-
-- Survey respondents data can be retained for a duration to be defined in the configuration file or on a per-user community basis.
-
+- Interviews automates the cloning of an entire questionnaire to make modifications to produce another one through simple adjustments after cloning.
