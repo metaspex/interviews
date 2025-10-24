@@ -400,11 +400,11 @@ namespace interviews {
     // After this function all the arguments are cleared and must be pushed again.
     // We could also add loop variables by passing the stack.
     // Cannot be const.
-    json_dom::value call(language_t);
+    json::value call(language_t);
 
     // For transitions (more frugal).
     // After this function all the arguments are cleared and must be pushed again.
-    json_dom::value call() const {
+    json::value call() const {
       return slot_js_run(_code);
     }
 
@@ -2753,7 +2753,7 @@ namespace interviews {
       _loop_operand_answer(loa),
       _index(0) // Loop index starts at 0. Increases at each begin loop and decreases at each end loop.
     {
-      _loop_operand = json_dom::convert(calculate_loop_operand(ts, lang));
+      _loop_operand = calculate_loop_operand(ts, lang);
       HX2A_ASSERT(qbl->get_operand_question() == loa->get_question());
       // Let's calculate the loop variable and operand size.
       json::value v = get_loop_operand();
@@ -2818,14 +2818,14 @@ namespace interviews {
 	return *_loop_variable_value;
       }
       
-      json_dom::value v = calculate_loop_variable_value(ts, lang, _question_begin_loop, _loop_operand_answer, _index);
-      _loop_variable_value = json_dom::convert(v);
+      json::value v = calculate_loop_variable_value(ts, lang, _question_begin_loop, _loop_operand_answer, _index);
+      _loop_variable_value = v;
       return *_loop_variable_value;
     }
     
-    static json_dom::value calculate_loop_variable_value(const the_stack&, language_t, const question_begin_loop_r&, const answer_r& loop_operand_answer, size_t index);
+    static json::value calculate_loop_variable_value(const the_stack&, language_t, const question_begin_loop_r&, const answer_r& loop_operand_answer, size_t index);
 
-    json_dom::value calculate_loop_operand(const the_stack&, language_t) const;
+    json::value calculate_loop_operand(const the_stack&, language_t) const;
     
   private:
 
@@ -2915,7 +2915,7 @@ namespace interviews {
 	return {};
       }
 
-      json_dom::value first = the_stack_frame::calculate_loop_variable_value(*this, lang, qbl, *loa, 0);
+      json::value first = the_stack_frame::calculate_loop_variable_value(*this, lang, qbl, *loa, 0);
       HX2A_LOG(trace) << "The first value of the loop variable is " << first;
 
       if (!first){

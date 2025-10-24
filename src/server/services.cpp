@@ -115,14 +115,14 @@ namespace interviews {
   // To look only with a single template question category at the beginning of the index.
   struct template_question_category_injector
   {
-    json::array_type operator()(const json::array_type& t, const template_question_category_id_r& query){
+    row_key_t operator()(const row_key_t& t, const template_question_category_id_r& query){
       return build_key(query->_template_question_category_id, t);
     }
   };
   
   struct template_question_category_remover
   {
-    json::array_type operator()(const json::array_type& v){
+    row_key_t operator()(const row_key_t& v){
       return json::remove_leading_values<1>(v);
     }
   };
@@ -300,7 +300,7 @@ namespace interviews {
 
   struct template_question_id_adder
   {
-    json::array_type operator()(const json::array_type& t, const rfr<template_question_id>& query) const {
+    row_key_t operator()(const row_key_t& t, const rfr<template_question_id>& query) const {
       return build_key(query->_template_question_id, t);
     }
   };
@@ -780,7 +780,7 @@ namespace interviews {
 
   struct campaign_id_adder
   {
-    json::array_type operator()(const json::array_type& t, const rfr<campaign_id>& query) const {
+    row_key_t operator()(const row_key_t& t, const rfr<campaign_id>& query) const {
       return build_key(query->_campaign_id, t);
     }
   };

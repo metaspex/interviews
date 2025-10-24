@@ -48,7 +48,7 @@ namespace interviews {
     oc << "let " << lad->_label.get() << '=' << v << ';' << qbl->get_operand() << ';'; 
   }
   
-  static inline json_dom::value compute_loop_operand(const the_stack& ts, language_t lang, const question_begin_loop_r& qbl, const answer_r& loop_operand_answer){
+  static inline json::value compute_loop_operand(const the_stack& ts, language_t lang, const question_begin_loop_r& qbl, const answer_r& loop_operand_answer){
     ostringstream oc;
     // Remember that undefined is not parsed as a result from a V8 call. We must not return it. Hence the complexity on testing
     // undefined.
@@ -61,11 +61,11 @@ namespace interviews {
     return v8_execute(oc.str());
   }
   
-  json_dom::value the_stack_frame::calculate_loop_operand(const the_stack& ts, language_t lang) const {
+  json::value the_stack_frame::calculate_loop_operand(const the_stack& ts, language_t lang) const {
     return compute_loop_operand(ts, lang, _question_begin_loop, _loop_operand_answer);
   }
   
-  json_dom::value the_stack_frame::calculate_loop_variable_value(const the_stack& ts, language_t lang, const question_begin_loop_r& qbl, const answer_r& loop_operand_answer, size_t index){
+  json::value the_stack_frame::calculate_loop_variable_value(const the_stack& ts, language_t lang, const question_begin_loop_r& qbl, const answer_r& loop_operand_answer, size_t index){
     ostringstream oc;
     // Remember that undefined is not parsed as a result from a V8 call. We must not return it. Hence the complexity on testing
     // undefined.
@@ -78,7 +78,7 @@ namespace interviews {
     return v8_execute(oc.str());
   }
   
-  json_dom::value function::call(language_t lang){
+  json::value function::call(language_t lang){
     _code << js_variable(js_language_var, (double) lang);
     const language::info* i = language::get_info(lang);
 
@@ -138,9 +138,9 @@ namespace interviews {
       ++i;
     }
 
-    json_dom::value v = _condition->call();
+    json::value v = _condition->call();
     
-    if (json_dom::is_true(v)){
+    if (json::is_true(v)){
       return _destination;
     }
     
@@ -244,7 +244,7 @@ namespace interviews {
     HX2A_LOG(trace) << "We have a function or loop variable. Processing \"" << text << "\".";
     
     // Keeping the function call values somewhere in case they are used several times.
-    ::std::vector<::std::optional<json_dom::value>> function_call_values(_text_functions.size());
+    ::std::vector<::std::optional<json::value>> function_call_values(_text_functions.size());
     // This is the calculated text stream.
     ostringstream s;
     
@@ -366,7 +366,7 @@ namespace interviews {
 
 	      {
 		// We could also add loop variables by passing the stack.
-		json_dom::value v = func->call(lang);
+		json::value v = func->call(lang);
 	      
 		// If it is a string, we must trim the double quotes around.
 		if (const string* str = v.if_string()){
@@ -1610,8 +1610,8 @@ answer_data_r answer_body_select_at_most::make_answer_data(const answer_r& a, ti
     // Otherwise it cannot be impacted.
     HX2A_ASSERT(ebl);
     question_begin_loop_r qbl = ebl->get_question_begin_loop();
-    json_dom::value plov = compute_loop_operand(pts, lang, qbl, ploa);
-    json_dom::value nlov = compute_loop_operand(nts, lang, qbl, nloa);
+    json::value plov = compute_loop_operand(pts, lang, qbl, ploa);
+    json::value nlov = compute_loop_operand(nts, lang, qbl, nloa);
     
     if (plov != nlov){
       // The loop operand changed.

@@ -9,7 +9,7 @@
 #include <array>
 #include <string>
 
-#include "hx2a/json/value.hpp"
+#include "hx2a/json_value.hpp"
 #include "hx2a/v8.hpp"
 #include "hx2a/tag_type.hpp"
 
@@ -178,13 +178,13 @@ function itvSelected(options, choices){
   bool initialize();
 
   // This calls initialize, use it.
-  inline json_dom::value v8_execute(string_view s){
+  inline json::value v8_execute(string_view s){
     [[maybe_unused]] static bool init = initialize();
     return v8::execute(s);
   }
 
   template <typename SlotJSType>
-  inline json_dom::value slot_js_run(SlotJSType& sjs){
+  inline json::value slot_js_run(SlotJSType& sjs){
     [[maybe_unused]] static bool init = initialize();
     return sjs.run();
   }
