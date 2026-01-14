@@ -101,7 +101,6 @@ namespace interviews {
 
 	    if (c == eval_close){
 	      if (funcn >= fn){
-		HX2A_LOG(trace) << "In question with label \"" << label << "\", found a parametric text with call to function of index " << funcn << ", while the number of functions is " << fn << '.';
 		throw function_call_out_of_bounds(label);
 	      }
 	    }
@@ -144,7 +143,7 @@ namespace interviews {
 
   // Must create both the template question AND the template question localization, as both are in
   // the source.
-  template_question_r source_template_question_message::compile(const template_question_category_r& tqc) const {
+  template_question_r source_template_question_message::compile(const template_question_category_r& tqc){
     template_question_r tq = make<template_question>(*tqc->get_home(), tqc, _label, make<question_body_message>(_style));
     make<template_question_localization>(*tqc->get_home(), tq, _language, make<question_localization_body_message>(_text));
     return tq;
@@ -163,7 +162,7 @@ namespace interviews {
     qlb->update(_text);
   }
   
-  template_question_r source_template_question_input::compile(const template_question_category_r& tqc) const {
+  template_question_r source_template_question_input::compile(const template_question_category_r& tqc){
     template_question_r tq = make<template_question>(*tqc->get_home(), tqc, _label, make<question_body_input>(_style, _comment_label.get().size(), _optional));
     make<template_question_localization>(*tqc->get_home(), tq, _language, make<question_localization_body_input>(_text, _comment_label));
     return tq;
@@ -185,7 +184,7 @@ namespace interviews {
     qlbi->update(_text, _comment_label);
   }
   
-  template_question_r source_template_question_select::compile(const template_question_category_r& tqc) const {
+  template_question_r source_template_question_select::compile(const template_question_category_r& tqc){
     rfr<question_body_with_options> qbwo = make<question_body_select>(_style, _randomize, _comment_label.get().size());
     template_question_r tq = make<template_question>(*tqc->get_home(), tqc, _label, qbwo);
     rfr<question_localization_body_with_options> qlbwo = make<question_localization_body_select>(_text, _comment_label);
@@ -214,14 +213,8 @@ namespace interviews {
     compile_options(qbs, qlbs);
   }
   
-  template_question_r source_template_question_select_at_most::compile(const template_question_category_r& tqc) const {
-    rfr<question_body_with_options> qbwo = make<question_body_select_at_most>(_style, _randomize, _comment_label.get().size(), _limit);
-    template_question_r tq = make<template_question>(*tqc->get_home(), tqc, _label, qbwo);
-    rfr<question_localization_body_with_options> qlbwo = make<question_localization_body_select_at_most>(_text, _comment_label);
-    make<template_question_localization>(*tqc->get_home(), tq, _language, qlbwo);
-    // Now let's take care of the options for both in a single shot.
-    compile_options(qbwo, qlbwo);
-    return tq;
+  template_question_r source_template_question_select_at_most::compile(const template_question_category_r& tqc){
+    return tmpl_compile<question_body_select_at_most, question_localization_body_select_at_most>(tqc);
   }
 
   void source_template_question_select_at_most::update(const template_question_localization_r& tql) const {
@@ -243,14 +236,8 @@ namespace interviews {
     compile_options(qbs, qlbs);
   }
   
-  template_question_r source_template_question_select_limit::compile(const template_question_category_r& tqc) const {
-    rfr<question_body_with_options> qbwo = make<question_body_select_limit>(_style, _randomize, _comment_label.get().size(), _limit);
-    template_question_r tq = make<template_question>(*tqc->get_home(), tqc, _label, qbwo);
-    rfr<question_localization_body_with_options> qlbwo = make<question_localization_body_select_limit>(_text, _comment_label);
-    make<template_question_localization>(*tqc->get_home(), tq, _language, qlbwo);
-    // Now let's take care of the options for both in a single shot.
-    compile_options(qbwo, qlbwo);
-    return tq;
+  template_question_r source_template_question_select_limit::compile(const template_question_category_r& tqc){
+    return tmpl_compile<question_body_select_limit, question_localization_body_select_limit>(tqc);
   }
 
   void source_template_question_select_limit::update(const template_question_localization_r& tql) const {
@@ -272,14 +259,8 @@ namespace interviews {
     compile_options(qbs, qlbs);
   }
   
-  template_question_r source_template_question_rank_at_most::compile(const template_question_category_r& tqc) const {
-    rfr<question_body_with_options> qbwo = make<question_body_rank_at_most>(_style, _randomize, _comment_label.get().size(), _limit);
-    template_question_r tq = make<template_question>(*tqc->get_home(), tqc, _label, qbwo);
-    rfr<question_localization_body_with_options> qlbwo = make<question_localization_body_rank_at_most>(_text, _comment_label);
-    make<template_question_localization>(*tqc->get_home(), tq, _language, qlbwo);
-    // Now let's take care of the options for both in a single shot.
-    compile_options(qbwo, qlbwo);
-    return tq;
+  template_question_r source_template_question_rank_at_most::compile(const template_question_category_r& tqc){
+    return tmpl_compile<question_body_rank_at_most, question_localization_body_rank_at_most>(tqc);
   }
 
   void source_template_question_rank_at_most::update(const template_question_localization_r& tql) const {
@@ -301,14 +282,8 @@ namespace interviews {
     compile_options(qbs, qlbs);
   }
   
-  template_question_r source_template_question_rank_limit::compile(const template_question_category_r& tqc) const {
-    rfr<question_body_with_options> qbwo = make<question_body_rank_limit>(_style, _randomize, _comment_label.get().size(), _limit);
-    template_question_r tq = make<template_question>(*tqc->get_home(), tqc, _label, qbwo);
-    rfr<question_localization_body_with_options> qlbwo = make<question_localization_body_rank_limit>(_text, _comment_label);
-    make<template_question_localization>(*tqc->get_home(), tq, _language, qlbwo);
-    // Now let's take care of the options for both in a single shot.
-    compile_options(qbwo, qlbwo);
-    return tq;
+  template_question_r source_template_question_rank_limit::compile(const template_question_category_r& tqc){
+    return tmpl_compile<question_body_rank_limit, question_localization_body_rank_limit>(tqc);
   }
 
   void source_template_question_rank_limit::update(const template_question_localization_r& tql) const {
@@ -438,7 +413,7 @@ namespace interviews {
   
   // End of specializations for compile_supplemental.
   
-  std::pair<question_r, question_localization_p> source_question_message::compile(const questionnaire_r& qq, const question_infos_by_label_map&) const {
+  std::pair<question_r, question_localization_p> source_question_message::compile(const questionnaire_r& qq, const question_infos_by_label_map&){
     // A message without text and just a comment label is acceptable. E.g. "If you have a general feedback for this questionnaire, please enter it below."
     if (_text.get() == nullptr || _text->_value.get().empty()){
       // There needs to be a text.
@@ -452,7 +427,7 @@ namespace interviews {
     return {q, make<question_localization>(q, make<question_localization_body_message>(_text->_value))};
   }
 
-  std::pair<question_r, question_localization_p> source_question_input::compile(const questionnaire_r& qq, const question_infos_by_label_map&) const {
+  std::pair<question_r, question_localization_p> source_question_input::compile(const questionnaire_r& qq, const question_infos_by_label_map&){
     if (_text.get() == nullptr || _text->_value.get().empty()){
       // There needs to be a text. It is the label of the input field.
       throw source_question_text_is_missing(_label);
@@ -465,7 +440,7 @@ namespace interviews {
     return {q, make<question_localization>(q, make<question_localization_body_input>(_text->_value, _comment_label))};
   }
     
-  std::pair<question_r, question_localization_p> source_question_select::compile(const questionnaire_r& qq, const question_infos_by_label_map&) const {
+  std::pair<question_r, question_localization_p> source_question_select::compile(const questionnaire_r& qq, const question_infos_by_label_map&){
     if (_text.get() == nullptr || _text->_value.get().empty()){
       // There needs to be a text. It is the label of the input field.
       throw source_question_text_is_missing(_label);
@@ -486,23 +461,23 @@ namespace interviews {
     return {q, ql};
   }
     
-  std::pair<question_r, question_localization_p> source_question_select_at_most::compile(const questionnaire_r& qq, const question_infos_by_label_map&) const {
+  std::pair<question_r, question_localization_p> source_question_select_at_most::compile(const questionnaire_r& qq, const question_infos_by_label_map&){
     return tmpl_compile<question_body_select_at_most, question_localization_body_select_at_most>(qq);
   }
     
-  std::pair<question_r, question_localization_p> source_question_select_limit::compile(const questionnaire_r& qq, const question_infos_by_label_map&) const {
+  std::pair<question_r, question_localization_p> source_question_select_limit::compile(const questionnaire_r& qq, const question_infos_by_label_map&){
     return tmpl_compile<question_body_select_limit, question_localization_body_select_limit>(qq);
   }
     
-  std::pair<question_r, question_localization_p> source_question_rank_at_most::compile(const questionnaire_r& qq, const question_infos_by_label_map&) const {
+  std::pair<question_r, question_localization_p> source_question_rank_at_most::compile(const questionnaire_r& qq, const question_infos_by_label_map&){
     return tmpl_compile<question_body_rank_at_most, question_localization_body_rank_at_most>(qq);
   }
     
-  std::pair<question_r, question_localization_p> source_question_rank_limit::compile(const questionnaire_r& qq, const question_infos_by_label_map&) const {
+  std::pair<question_r, question_localization_p> source_question_rank_limit::compile(const questionnaire_r& qq, const question_infos_by_label_map&){
     return tmpl_compile<question_body_rank_limit, question_localization_body_rank_limit>(qq);
   }
     
-  std::pair<question_r, question_localization_p> source_question_from_template::compile(const questionnaire_r& qq, const question_infos_by_label_map&) const {
+  std::pair<question_r, question_localization_p> source_question_from_template::compile(const questionnaire_r& qq, const question_infos_by_label_map&){
     template_question_p tq = template_question::find(*qq->get_home(), _template_name);
 
     if (!tq){
@@ -518,7 +493,7 @@ namespace interviews {
   }
 
   // We could check that there is no variable name collision in nested loops... Oh well...
-  std::pair<question_r, question_localization_p> source_question_begin_loop::compile(const questionnaire_r& qq, const question_infos_by_label_map& qbl) const {
+  std::pair<question_r, question_localization_p> source_question_begin_loop::compile(const questionnaire_r& qq, const question_infos_by_label_map& qbl){
     auto f = qbl.find(_question);
 
     if (f == qbl.cend()){
@@ -534,7 +509,7 @@ namespace interviews {
     return {q, {}};
   }
     
-  std::pair<question_r, question_localization_p> source_question_end_loop::compile(const questionnaire_r& qq, const question_infos_by_label_map&) const {
+  std::pair<question_r, question_localization_p> source_question_end_loop::compile(const questionnaire_r& qq, const question_infos_by_label_map&){
     question_r q = make<question_end_loop>(_label);
     // We must push the question in the questionnaire so that referential integrity is happy that the localization bears
     // a link to it.
@@ -611,20 +586,24 @@ namespace interviews {
     
     // Zero transition is allowed. It means it's either a final question (there can be several ones), or it is transitioning
     // to the immediate next question unconditionally.
-    // For instance a message question cannot have zero transitions in the source if it is followed by another question and is
+    
+    // A message question cannot have zero transitions in the source if it is followed by another question and is
     // expected to be final.
+    
     if (_transitions.empty()){
-      if (q->can_be_final()){
-	return;
-      }
+      ++qi;
       
-      // Transitioning to the immediate next question (if any) unconditionally.
       if (qi == qe){
+	// We are on the last question.
+	if (q->can_be_final()){
+	  return;
+	}
+      
 	// No more question, error!
 	throw source_question_transition_is_missing(_label);
       }
 
-      ++qi;
+      // Transitioning to the immediate next question (if any) unconditionally.
       q->push_transition_back(make<transition>(**qi));
       return;
     }
@@ -822,8 +801,6 @@ namespace interviews {
 	throw source_questionnaire_contains_null_question();
       }
 
-      HX2A_LOG(trace) << "Compiling source question with label " << sq->_label;
-      
       // This will add the newly created question to the questionnaire.
       // The label is validated by the question's ctor.
       std::pair<question_r, question_localization_p> qql = sq->compile(qq, m);
@@ -842,7 +819,6 @@ namespace interviews {
 	question_begin_loop_r mbl = ln.back();
 	ln.pop_back(); // We know how to update the loop nest.
 	m.emplace(q->get_label(), pair<question_info, question*>(question_info(qn, ln, mbl), &q.get()));
-	HX2A_LOG(trace) << "It is an end loop, its level is " << ln.size() << ", its matching begin loop has label " << mbl->get_label() << ", while its parent begin loop is " << (ln.size() ? ln.back()->get_label() : "null");
       }
       else{
 	m.emplace(q->get_label(), pair<question_info, question*>(question_info(qn, ln, {}), &q.get()));
@@ -918,39 +894,39 @@ namespace interviews {
     return std::pair<questionnaire_r, questionnaire_localization_r>(qq, ql);
   }
 
-  question_localization_r source_question_localization_message::compile(const question_r& q) const {
+  question_localization_r source_question_localization_message::compile(const question_r& q){
     question_localization_r ql = make<question_localization>(q, make<question_localization_body_message>(_text));
     ql->check(); 
     return ql;
   }
     
-  question_localization_r source_question_localization_input::compile(const question_r& q) const {
+  question_localization_r source_question_localization_input::compile(const question_r& q){
     question_localization_r ql = make<question_localization>(q, make<question_localization_body_input>(_text, _comment_label));
     ql->check(); 
     return ql;
   }
 
-  question_localization_r source_question_localization_select::compile(const question_r& q) const {
+  question_localization_r source_question_localization_select::compile(const question_r& q){
     return tmpl_compile<question_localization_body_select>(q);
   }
     
-  question_localization_r source_question_localization_select_at_most::compile(const question_r& q) const {
+  question_localization_r source_question_localization_select_at_most::compile(const question_r& q){
     return tmpl_compile<question_localization_body_select_at_most>(q);
   }
     
-  question_localization_r source_question_localization_select_limit::compile(const question_r& q) const {
+  question_localization_r source_question_localization_select_limit::compile(const question_r& q){
     return tmpl_compile<question_localization_body_select_limit>(q);
   }
     
-  question_localization_r source_question_localization_rank_at_most::compile(const question_r& q) const {
+  question_localization_r source_question_localization_rank_at_most::compile(const question_r& q){
     return tmpl_compile<question_localization_body_rank_at_most>(q);
   }
     
-  question_localization_r source_question_localization_rank_limit::compile(const question_r& q) const {
+  question_localization_r source_question_localization_rank_limit::compile(const question_r& q){
     return tmpl_compile<question_localization_body_rank_limit>(q);
   }
     
-  question_localization_r source_question_localization::compile(const question_infos_by_label_map& map) const {
+  question_localization_r source_question_localization::compile(const question_infos_by_label_map& map){
     auto i = map.find(_label);
 
     if (i == map.cend()){

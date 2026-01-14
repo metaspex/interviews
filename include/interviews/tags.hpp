@@ -37,6 +37,7 @@ namespace interviews {
   constexpr tag_t destination_tag                       = "destination";
   constexpr tag_t duration_tag                          = "duration";
   constexpr tag_t elapsed_tag                           = "elapsed";
+  constexpr tag_t final_tag                             = "final";
   constexpr tag_t functions_tag                         = "functions";
   constexpr tag_t geolocation_tag                       = "geolocation";
   constexpr tag_t id_tag                                = "id";

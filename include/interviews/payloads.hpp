@@ -193,7 +193,8 @@ namespace interviews {
   class source_option: public element<>
   {
     HX2A_ELEMENT(source_option, type_tag<"src_option">, element,
-		 (_label, _comment_label));
+		 ((_label, label_tag),
+		  (_comment_label, comment_label_tag)));
   public:
 
     source_option(
@@ -211,14 +212,15 @@ namespace interviews {
     {
     }
   
-    slot<string, label_tag> _label;
-    slot<string, comment_label_tag> _comment_label;
+    slot<string> _label;
+    slot<string> _comment_label;
   };
 
   class source_option_localization: public element<>
   {
     HX2A_ELEMENT(source_option_localization, type_tag<"src_option_l10n">, element,
-		 (_label, _comment_label));
+		 ((_label, label_tag),
+		  (_comment_label, comment_label_tag)));
   public:
 
     source_option_localization(
@@ -236,14 +238,15 @@ namespace interviews {
     {
     }
   
-    slot<string, label_tag> _label;
-    slot<string, comment_label_tag> _comment_label;
+    slot<string> _label;
+    slot<string> _comment_label;
   };
 
   class source_function: public element<>
   {
     HX2A_ELEMENT(source_function, type_tag<"src_function">, element,
-		 (_parameters, _code));
+		 ((_parameters, parameters_tag),
+		  (_code, code_tag)));
   public:
 
     source_function(const string& code):
@@ -256,14 +259,15 @@ namespace interviews {
     // Label given only for error reporting purposes.
     void compile(const string& label, const question_body_r& qb, const question_infos_by_label_map& qblm, const question_info&) const;
     
-    slot_vector<string, parameters_tag> _parameters;
-    slot<string, code_tag> _code;
+    slot_vector<string> _parameters;
+    slot<string> _code;
   };
   
   class source_text: public element<>
   {
     HX2A_ELEMENT(source_text, type_tag<"src_text">, element,
-		 (_functions, _value));
+		 ((_functions, functions_tag),
+		  (_value, value_tag)));
   public:
 
     source_text(const question_body_r& qb, const question_localization_body_r& qlb):
@@ -296,8 +300,8 @@ namespace interviews {
     void compile(const string& label, const question_body_r& qb, const question_infos_by_label_map& qblm, const question_info&) const;
 
     // A given text can use multiple functions.
-    own_vector<source_function, functions_tag> _functions;
-    slot<string, value_tag> _value;
+    own_vector<source_function> _functions;
+    slot<string> _value;
   };
 
   // Source template questions. They have the same taxonomy as source questions, but each of them has a language.
@@ -309,7 +313,10 @@ namespace interviews {
   class source_template_question: public element<>
   {
     HX2A_ELEMENT(source_template_question, type_tag<"src_template_question">, element,
-		 (_language, _label, _style, _text));
+		 ((_language, language_tag),
+		  (_label, label_tag),
+		  (_style, style_tag),
+		  (_text, text_tag)));
   public:
 
     source_template_question(serial_t):
@@ -342,7 +349,8 @@ namespace interviews {
     // This is a one pass algorithm. It creates the template question localization and the template question at the same
     // time. That little saving creates the situation whereby the update function repeats some of the code.
     // Dummy base implementation.
-    virtual template_question_r compile(const template_question_category_r& tqc) const {
+    // Non const so that specialized compile functions can do whatever magic they want.
+    virtual template_question_r compile(const template_question_category_r& tqc){
       HX2A_ASSERT(false);
       return make<template_question>(*tqc->get_home(), tqc, "", make<question_body>(""));
     }
@@ -354,11 +362,11 @@ namespace interviews {
       HX2A_ASSERT(false);
     }
 
-    slot<language_t, language_tag> _language;
-    slot<string, label_tag> _label;
-    slot<string, style_tag> _style;
+    slot<language_t> _language;
+    slot<string > _label;
+    slot<string> _style;
     // Every localization in a source question will need the text of the question/message.
-    slot<string, text_tag> _text;
+    slot<string> _text;
   };
 
   // Specializations of source_template_question.
@@ -371,7 +379,7 @@ namespace interviews {
 
     using source_template_question::source_template_question;
 
-    template_question_r compile(const template_question_category_r&) const override;
+    template_question_r compile(const template_question_category_r&) override;
 
     // The template question can be retrieved from its localization.
     void update(const template_question_localization_r&) const override;
@@ -380,7 +388,7 @@ namespace interviews {
   class source_template_question_with_comment: public source_template_question
   {
     HX2A_ELEMENT(source_template_question_with_comment, type_tag<"template_question_with_comment">, source_template_question,
-		 (_comment_label));
+		 ((_comment_label, comment_label_tag)));
   public:
 
     source_template_question_with_comment(
@@ -395,14 +403,14 @@ namespace interviews {
     {
     }
     
-    slot<string, comment_label_tag> _comment_label;
+    slot<string> _comment_label;
   };
 
   // A question with an input field, and an optional comment with another input field.
   class source_template_question_input: public source_template_question_with_comment
   {
     HX2A_ELEMENT(source_template_question_input, type_tag<"template_question_input">, source_template_question_with_comment,
-		 (_optional));
+		 ((_optional, optional_tag)));
   public:
 
     source_template_question_input(serial_t):
@@ -424,11 +432,11 @@ namespace interviews {
     {
     }
     
-    template_question_r compile(const template_question_category_r&) const override;
+    template_question_r compile(const template_question_category_r&) override;
 
     void update(const template_question_localization_r&) const override;
 
-    slot<bool, optional_tag> _optional;
+    slot<bool> _optional;
   };
 
   // No incrementality is to be expected for updates of classes derived from this type. To simplify the code, options
@@ -436,7 +444,8 @@ namespace interviews {
   class source_template_question_with_options: public source_template_question_with_comment
   {
     HX2A_ELEMENT(source_template_question_with_options, type_tag<"template_question_with_options">, source_template_question_with_comment,
-		 (_options, _randomize));
+		 ((_options, options_tag),
+		  (_randomize, randomize_tag)));
   public:
 
     source_template_question_with_options(
@@ -469,10 +478,10 @@ namespace interviews {
       }
     }
 
-    own_vector<source_option, options_tag> _options;
+    own_vector<source_option> _options;
     // Rather than multiplying the types or making a template type, we have a boolean driving whether options should be
     // displayed randomized or not by the GUI.
-    slot<bool, randomize_tag> _randomize;
+    slot<bool> _randomize;
   };
 
   class source_template_question_select: public source_template_question_with_options
@@ -483,7 +492,7 @@ namespace interviews {
 
     using source_template_question_with_options::source_template_question_with_options;
 
-    template_question_r compile(const template_question_category_r&) const override;
+    template_question_r compile(const template_question_category_r&) override;
 
     // The template question can be retrieved from its localization.
     void update(const template_question_localization_r&) const override;
@@ -494,7 +503,7 @@ namespace interviews {
   class source_template_question_multiple_choices: public source_template_question_with_options
   {
     HX2A_ELEMENT(source_template_question_multiple_choices, type_tag<"template_question_multiple_choices">, source_template_question_with_options,
-		 (_limit));
+		 ((_limit, limit_tag)));
   public:
 
     source_template_question_multiple_choices(
@@ -511,7 +520,29 @@ namespace interviews {
     {
     }
 
-    slot<size_t, limit_tag> _limit;
+    // None of the virtuals are implemented here, this is an intermediary parent type without instances.
+    // Shared helpers for derived classes are here, though.
+    
+    template <typename QuestionBodyWithOptions, typename QuestionLocalizationBodyWithOptions>
+    template_question_r tmpl_compile(const template_question_category_r& tqc){
+      adjust_limit(); // If the limit is 0, it becomes the size of the options.
+      rfr<QuestionBodyWithOptions> qbwo = make<QuestionBodyWithOptions>(_style, _randomize, _comment_label.get().size(), _limit);
+      template_question_r tq = make<template_question>(*tqc->get_home(), tqc, _label, qbwo);
+      rfr<QuestionLocalizationBodyWithOptions> qlbwo = make<QuestionLocalizationBodyWithOptions>(_text, _comment_label);
+      make<template_question_localization>(*tqc->get_home(), tq, _language, qlbwo);
+      // Now let's take care of the options for both in a single shot.
+      compile_options(qbwo, qlbwo);
+      return tq;
+    }
+
+    // In case the limit is null (or not supplied), it is adjusted to the number of options.
+    void adjust_limit(){
+      if (!_limit){
+	_limit = _options.size();
+      }
+    }
+    
+    slot<size_t> _limit;
   };
   
   class source_template_question_select_at_most: public source_template_question_multiple_choices
@@ -522,7 +553,7 @@ namespace interviews {
 
     using source_template_question_multiple_choices::source_template_question_multiple_choices;
 
-    template_question_r compile(const template_question_category_r&) const override;
+    template_question_r compile(const template_question_category_r&) override;
 
     // The template question can be retrieved from its localization.
     void update(const template_question_localization_r&) const override;
@@ -538,7 +569,7 @@ namespace interviews {
 
     using source_template_question_multiple_choices::source_template_question_multiple_choices;
 
-    template_question_r compile(const template_question_category_r&) const override;
+    template_question_r compile(const template_question_category_r&) override;
 
     // The template question can be retrieved from its localization.
     void update(const template_question_localization_r&) const override;
@@ -554,7 +585,7 @@ namespace interviews {
 
     using source_template_question_multiple_choices::source_template_question_multiple_choices;
 
-    template_question_r compile(const template_question_category_r&) const override;
+    template_question_r compile(const template_question_category_r&) override;
 
     // The template question can be retrieved from its localization.
     void update(const template_question_localization_r&) const override;
@@ -570,7 +601,7 @@ namespace interviews {
 
     using source_template_question_multiple_choices::source_template_question_multiple_choices;
 
-    template_question_r compile(const template_question_category_r&) const override;
+    template_question_r compile(const template_question_category_r&) override;
 
     // The template question can be retrieved from its localization.
     void update(const template_question_localization_r&) const override;
@@ -583,7 +614,7 @@ namespace interviews {
   class template_question_category_id: public element<>
   {
     HX2A_ELEMENT(template_question_category_id, type_tag<"template_question_category_id">, element,
-		 (_template_question_category_id));
+		 ((_template_question_category_id, template_question_category_id_tag)));
   public:
 
     // Strong type for code verification.
@@ -592,13 +623,13 @@ namespace interviews {
     {
     }
     
-    slot<doc_id, template_question_category_id_tag> _template_question_category_id;
+    slot<doc_id> _template_question_category_id;
   };
   
   class template_question_category_id_and_language_payload: public template_question_category_id
   {
     HX2A_ELEMENT(template_question_category_id_and_language_payload, type_tag<"template_question_category_id_and_language_pld">, template_question_category_id,
-		 (_language));
+		 ((_language, language_tag)));
   public:
 
     template_question_category_id_and_language_payload(serial_t):
@@ -607,13 +638,14 @@ namespace interviews {
     {
     }
 
-    slot<language_t, language_tag> _language;
+    slot<language_t> _language;
   };
   
   class template_question_category_data: public element<>
   {
     HX2A_ELEMENT(template_question_category_data, type_tag<"template_question_category_data_pld">, element,
-		 (_name, _parent));
+		 ((_name, name_tag),
+		  (_parent, parent_tag)));
   public:
 
     template_question_category_data(const template_question_category_r& tqc):
@@ -625,8 +657,8 @@ namespace interviews {
       }
     }
 
-    slot<string, name_tag> _name;
-    slot<doc_id, parent_tag> _parent;
+    slot<string> _name;
+    slot<doc_id> _parent;
   };
 
   using template_question_category_create_payload = template_question_category_data;
@@ -636,16 +668,16 @@ namespace interviews {
   class template_question_category_update_payload: public template_question_category_id
   {
     HX2A_ELEMENT(template_question_category_update_payload, type_tag<"template_question_category_update_pld">, template_question_category_id,
-		 (_name));
+		 ((_name, name_tag)));
   public:
 
-    slot<string, name_tag> _name;
+    slot<string> _name;
   };
 
   class template_question_localization_id: public element<>
   {
     HX2A_ELEMENT(template_question_localization_id, type_tag<"template_question_localization_id">, element,
-		 (_template_question_localization_id));
+		 ((_template_question_localization_id, template_question_localization_id_tag)));
   public:
 
     // Strong type for code verification.
@@ -655,13 +687,13 @@ namespace interviews {
     {
     }
 
-    slot<doc_id, template_question_localization_id_tag> _template_question_localization_id;
+    slot<doc_id> _template_question_localization_id;
   };
   
   class template_question_id: public element<>
   {
     HX2A_ELEMENT(template_question_id, type_tag<"template_question_id">, element,
-		 (_template_question_id));
+		 ((_template_question_id, template_question_id_tag)));
   public:
 
     // Strong type for code verification.
@@ -670,13 +702,13 @@ namespace interviews {
     {
     }
     
-    slot<doc_id, template_question_id_tag> _template_question_id;
+    slot<doc_id> _template_question_id;
   };
   
   class template_question_data: public template_question_category_id
   {
     HX2A_ELEMENT(template_question_data, type_tag<"template_question_data_pld">, template_question_category_id,
-		 (_source_question));
+		 ((_source_question, question_tag)));
   public:
 
     template_question_data(const template_question_localization_r& tql):
@@ -685,7 +717,7 @@ namespace interviews {
     {
     }
 
-    own<source_template_question, question_tag> _source_question;
+    own<source_template_question> _source_question;
   };
 
   using template_question_create_payload = template_question_data;
@@ -695,16 +727,16 @@ namespace interviews {
   class template_question_get_payload: public element<>
   {
     HX2A_ELEMENT(template_question_get_payload, type_tag<"template_question_get_pld">, element,
-		 (_template_question_localization_id));
+		 ((_template_question_localization_id, template_question_localization_id_tag)));
   public:
 
-    slot<doc_id, template_question_localization_id_tag> _template_question_localization_id;
+    slot<doc_id> _template_question_localization_id;
   };
 
   class template_question_get_from_language_payload: public template_question_id
   {
     HX2A_ELEMENT(template_question_get_from_language_payload, type_tag<"template_question_get_from_language_pld">, template_question_id,
-		 (_language));
+		 ((_language, language_tag)));
   public:
 
     template_question_get_from_language_payload(serial_t):
@@ -713,17 +745,18 @@ namespace interviews {
     {
     }
 
-    slot<language_t, language_tag> _language;
+    slot<language_t> _language;
   };
 
   class template_question_update_payload: public template_question_localization_id
   {
     HX2A_ELEMENT(template_question_update_payload, type_tag<"template_question_update_pld">, template_question_localization_id,
-		 (_template_question_category_id, _source_template_question));
+		 ((_template_question_category_id, template_question_category_id_tag),
+		  (_source_template_question, question_tag)));
   public:
 
-    slot<doc_id, template_question_category_id_tag> _template_question_category_id;
-    own<source_template_question, question_tag> _source_template_question;
+    slot<doc_id> _template_question_category_id;
+    own<source_template_question> _source_template_question;
   };
 
   // We inherit from the template question id a source template question localization needs to refer to the appropriate
@@ -731,7 +764,8 @@ namespace interviews {
   class source_template_question_localization: public template_question_id
   {
     HX2A_ELEMENT(source_template_question_localization, type_tag<"source_template_question_localization">, template_question_id,
-		 (_language, _text));
+		 ((_language, language_tag),
+		  (_text, text_tag)));
   public:
 
     source_template_question_localization(serial_t):
@@ -760,8 +794,8 @@ namespace interviews {
       return make<template_question_localization>(c, tq, lang, make<question_localization_body>(""));
     }
     
-    slot<language_t, language_tag> _language;
-    slot<string, text_tag> _text;
+    slot<language_t> _language;
+    slot<string> _text;
   };
 
   // Specializations of source_template_question_localization.
@@ -781,7 +815,7 @@ namespace interviews {
   class source_template_question_localization_with_comment: public source_template_question_localization
   {
     HX2A_ELEMENT(source_template_question_localization_with_comment, type_tag<"source_template_question_localization_with_comment">, source_template_question_localization,
-		 (_comment_label));
+		 ((_comment_label, comment_label_tag)));
   public:
     
     source_template_question_localization_with_comment(
@@ -795,7 +829,7 @@ namespace interviews {
     {
     }
 
-    slot<string, comment_label_tag> _comment_label;
+    slot<string> _comment_label;
   };
   
   class source_template_question_localization_input: public source_template_question_localization_with_comment
@@ -812,7 +846,7 @@ namespace interviews {
   class source_template_question_localization_with_options: public source_template_question_localization_with_comment
   {
     HX2A_ELEMENT(source_template_question_localization_with_options, type_tag<"source_template_question_localization_with_options">, source_template_question_localization_with_comment,
-		 (_options));
+		 ((_options, options_tag)));
   public:
     
     source_template_question_localization_with_options(
@@ -847,7 +881,7 @@ namespace interviews {
       }
     }
 
-    own_vector<source_option_localization, options_tag> _options;
+    own_vector<source_option_localization> _options;
   };
   
   class source_template_question_localization_select: public source_template_question_localization_with_options
@@ -914,7 +948,9 @@ namespace interviews {
   class template_question_localization_update_payload: public template_question_localization_id
   {
     HX2A_ELEMENT(template_question_localization_update_payload, type_tag<"template_question_localization_update_pld">, template_question_localization_id,
-		 (_language, _style, _text));
+		 ((_language, language_tag),
+		  (_style, style_tag),
+		  (_text, text_tag)));
   public:
 
     template_question_localization_update_payload(serial_t):
@@ -930,9 +966,9 @@ namespace interviews {
     // Called by the former.
     virtual void update_supplemental(const question_localization_body_r&, const template_question_r&) const {}
     
-    slot<language_t, language_tag> _language;
-    slot<string, style_tag> _style;
-    slot<string, text_tag> _text;
+    slot<language_t> _language;
+    slot<string> _style;
+    slot<string> _text;
   };
 
   // Specializations of template_question_localization_update_payload.
@@ -949,12 +985,12 @@ namespace interviews {
   class template_question_localization_with_comment_update_payload: public template_question_localization_update_payload
   {
     HX2A_ELEMENT(template_question_localization_with_comment_update_payload, type_tag<"template_question_localization_with_comment_update_pld">, template_question_localization_update_payload,
-		 (_comment_label));
+		 ((_comment_label, comment_label_tag)));
   public:
 
     void update_supplemental(const question_localization_body_r&, const template_question_r&) const override;
     
-    slot<string, comment_label_tag> _comment_label;
+    slot<string> _comment_label;
   };
 
   class template_question_localization_input_update_payload: public template_question_localization_with_comment_update_payload
@@ -969,12 +1005,12 @@ namespace interviews {
   class template_question_localization_with_options_update_payload: public template_question_localization_with_comment_update_payload
   {
     HX2A_ELEMENT(template_question_localization_with_options_update_payload, type_tag<"template_question_localization_with_options_update_pld">, template_question_localization_with_comment_update_payload,
-		 (_options));
+		 ((_options, options_tag)));
   public:
 
     void update_supplemental(const question_localization_body_r& qlb, const template_question_r& tq) const override;
     
-    own_vector<source_option, options_tag> _options;
+    own_vector<source_option> _options;
   };
 
   class template_question_localization_select_update_payload: public template_question_localization_with_options_update_payload
@@ -1015,16 +1051,16 @@ namespace interviews {
   class questionnaire_id: public element<>
   {
     HX2A_ELEMENT(questionnaire_id, type_tag<"questionnaire_id">, element,
-		 (_questionnaire_id));
+		 ((_questionnaire_id, questionnaire_id_tag)));
   public:
 
-    slot<doc_id, questionnaire_id_tag> _questionnaire_id;
+    slot<doc_id> _questionnaire_id;
   };
 
   class questionnaire_id_and_language_payload: public questionnaire_id
   {
     HX2A_ELEMENT(questionnaire_id_and_language_payload, type_tag<"questionnaire_id_and_language_pld">, questionnaire_id,
-		 (_language));
+		 ((_language, language_tag)));
   public:
 
     questionnaire_id_and_language_payload(serial_t):
@@ -1033,13 +1069,13 @@ namespace interviews {
     {
     }
 
-    slot<language_t, language_tag> _language;
+    slot<language_t> _language;
   };
 
   class logo_payload: public element<>
   {
     HX2A_ELEMENT(logo_payload, type_tag<"header_pld">, element,
-		 (_logo));
+		 ((_logo, logo_tag)));
   public:
 
     logo_payload(serial_t):
@@ -1053,13 +1089,13 @@ namespace interviews {
     {
     }
 
-    slot<string, logo_tag> _logo;
+    slot<string> _logo;
   };
   
   class header_payload: public logo_payload
   {
     HX2A_ELEMENT(header_payload, type_tag<"logo_pld">, logo_payload,
-		 (_title));
+		 ((_title, title_tag)));
   public:
 
     header_payload(serial_t):
@@ -1074,13 +1110,13 @@ namespace interviews {
     {
     }
 
-    slot<string, title_tag> _title;
+    slot<string> _title;
   };
   
   class languages_payload: public logo_payload
   {
     HX2A_ELEMENT(languages_payload, type_tag<"languages">, logo_payload,
-		 (_languages));
+		 ((_languages, languages_tag)));
   public:
 
     languages_payload(const string& logo):
@@ -1089,7 +1125,7 @@ namespace interviews {
     {
     }
 
-    slot_vector<language_t, languages_tag> _languages;
+    slot_vector<language_t> _languages;
   };
   
   // Source questionnaire.
@@ -1098,7 +1134,10 @@ namespace interviews {
   class source_transition: public element<>
   {
     HX2A_ELEMENT(source_transition, type_tag<"src_transition">, element,
-		 (_parameters, _condition, _code, _destination));
+		 ((_parameters, parameters_tag),
+		  (_condition, condition_tag),
+		  (_code, code_tag),
+		  (_destination, destination_tag)));
   public:
 
     source_transition(const transition_r& t):
@@ -1117,7 +1156,7 @@ namespace interviews {
       }
     }
 
-    slot_vector<string, parameters_tag> _parameters;
+    slot_vector<string> _parameters;
     // This is the condition under which the transition will be made to the question
     // the link points at.
     // It is a JavaScript piece of code that needs to evaluate to true, according to
@@ -1130,13 +1169,13 @@ namespace interviews {
     // qu2 == 2
     // If "qu2" is the label of the current question and the transition applies when
     // the choice is 2.
-    slot<string, condition_tag> _condition;
+    slot<string> _condition;
     // In case the snippet is a whole JavaScript piece of code, finishing with the evaluation
     // of the condition.
-    slot<string, code_tag> _code;
+    slot<string> _code;
     // This is the label of the destination question. It'll be compiled into a link
     // in the compiled questionnaire, if everything is validated.
-    slot<string, destination_tag> _destination;
+    slot<string> _destination;
   };
 
   // A source question is what is submitted to created a new questionnaire.
@@ -1153,10 +1192,11 @@ namespace interviews {
   class source_question: public element<>
   {
     HX2A_ELEMENT(source_question, type_tag<"question">, element,
-		 (_label, _transitions));
+		 ((_label, label_tag),
+		  (_transitions, transitions_tag)));
   public:
 
-    using transitions_type = own_vector<source_transition, transitions_tag>;
+    using transitions_type = own_vector<source_transition>;
 
     source_question(const string& label):
       _label(*this, label),
@@ -1171,7 +1211,7 @@ namespace interviews {
     // It'll add the newly created question to the questionnaire. This is not done by the caller so that referential integrity is happy when the question localization
     // is created.
     // Dummy base class implementation.
-    virtual pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) const {
+    virtual pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&){
       HX2A_ASSERT(false);
       question_r q = make<question>("");
       return {q, make<question_localization>(q, make<question_localization_body>(""))};
@@ -1196,7 +1236,7 @@ namespace interviews {
     // The question number is used to check if parameter questions are before, on the question or after.
     void compile_transitions(const question_infos_by_label_map&, const question_info&, questionnaire::questions_type::const_iterator i, questionnaire::questions_type::const_iterator e) const;
 
-    slot<string, label_tag> _label;
+    slot<string> _label;
     transitions_type _transitions;
   };
 
@@ -1206,7 +1246,8 @@ namespace interviews {
   class source_question_inline: public source_question
   {
     HX2A_ELEMENT(source_question_inline, type_tag<"inline">, source_question,
-		 (_style, _text));
+		 ((_style, style_tag),
+		  (_text, text_tag)));
   public:
 
     source_question_inline(
@@ -1227,12 +1268,11 @@ namespace interviews {
       // Nothing, only for sub types.
     }
     
-    slot<string, style_tag> _style;
+    slot<string> _style;
     // Every localization in a source question will need the text of the question/message.
-    own<source_text, text_tag> _text;
+    own<source_text> _text;
   };
 
-  // A question and an optional comment input field.
   class source_question_message: public source_question_inline
   {
     HX2A_ELEMENT(source_question_message, type_tag<"message">, source_question_inline,
@@ -1241,14 +1281,14 @@ namespace interviews {
 
     using source_question_inline::source_question_inline;
     
-    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) const override;
+    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) override;
   };
 
   // The comment is optional.
   class source_question_with_comment: public source_question_inline
   {
     HX2A_ELEMENT(source_question_with_comment, type_tag<"with_comment">, source_question_inline,
-		 (_comment_label));
+		 ((_comment_label, comment_label_tag)));
   public:
 
     source_question_with_comment(
@@ -1262,14 +1302,14 @@ namespace interviews {
     {
     }
     
-    slot<string, comment_label_tag> _comment_label;
+    slot<string> _comment_label;
   };
 
   // A question with an input field, and an optional comment with another input field.
   class source_question_input: public source_question_with_comment
   {
     HX2A_ELEMENT(source_question_input, type_tag<"input">, source_question_with_comment,
-		 (_optional));
+		 ((_optional, optional_tag)));
   public:
 
     source_question_input(serial_t):
@@ -1292,15 +1332,16 @@ namespace interviews {
     
     // The second element of the pair is a regular ptr, and not an rfr, because not all source questions come with a
     // localization. For instance a question from template does not.
-    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) const override;
+    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) override;
 
-    slot<bool, optional_tag> _optional;
+    slot<bool> _optional;
   };
 
   class source_question_with_options: public source_question_with_comment
   {
     HX2A_ELEMENT(source_question_with_options, type_tag<"with_options">, source_question_with_comment,
-		 (_options, _randomize));
+		 ((_options, options_tag),
+		  (_randomize, randomize_tag)));
   public:
 
     source_question_with_options(serial_t):
@@ -1339,10 +1380,10 @@ namespace interviews {
       }
     }
 
-    own_vector<source_option, options_tag> _options;
+    own_vector<source_option> _options;
     // Rather than multiplying the types or making a template type, we have a boolean driving whether options should be
     // displayed randomized or not by the GUI.
-    slot<bool, randomize_tag> _randomize;
+    slot<bool> _randomize;
   };
 
   class source_question_select: public source_question_with_options
@@ -1353,7 +1394,7 @@ namespace interviews {
 
     using source_question_with_options::source_question_with_options;
 
-    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) const override;
+    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) override;
 
     // No specific data.
   };
@@ -1362,7 +1403,7 @@ namespace interviews {
   class source_question_multiple_choices: public source_question_with_options
   {
     HX2A_ELEMENT(source_question_multiple_choices, type_tag<"multiple_choices">, source_question_with_options,
-		 (_limit));
+		 ((_limit, limit_tag)));
   public:
 
     source_question_multiple_choices(
@@ -1382,7 +1423,9 @@ namespace interviews {
     // Shared helpers for derived classes are here, though.
     
     template <typename QuestionBodyWithOptions, typename QuestionLocalizationBodyWithOptions>
-    pair<question_r, question_localization_p> tmpl_compile(const questionnaire_r& qq) const {
+    pair<question_r, question_localization_p> tmpl_compile(const questionnaire_r& qq){
+      adjust_limit(); // If the limit is 0, it becomes the size of the options.
+      
       if (_text.get() == nullptr || _text->_value.get().empty()){
 	// There needs to be a text. It is the label of the input field.
 	throw source_question_text_is_missing(_label);
@@ -1404,7 +1447,14 @@ namespace interviews {
       return {q, ql};
     }
 
-    slot<size_t, limit_tag> _limit;
+    // In case the limit is null (or not supplied), it is adjusted to the number of options.
+    void adjust_limit(){
+      if (!_limit){
+	_limit = _options.size();
+      }
+    }
+    
+    slot<size_t> _limit;
   };
 
   class source_question_select_at_most: public source_question_multiple_choices
@@ -1415,7 +1465,7 @@ namespace interviews {
 
     using source_question_multiple_choices::source_question_multiple_choices;
     
-    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) const override;
+    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) override;
   };
 
   class source_question_select_limit: public source_question_multiple_choices
@@ -1426,7 +1476,7 @@ namespace interviews {
 
     using source_question_multiple_choices::source_question_multiple_choices;
     
-    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) const override;
+    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) override;
   };
 
   class source_question_rank_at_most: public source_question_multiple_choices
@@ -1437,7 +1487,7 @@ namespace interviews {
 
     using source_question_multiple_choices::source_question_multiple_choices;
     
-    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) const override;
+    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) override;
   };
 
   class source_question_rank_limit: public source_question_multiple_choices
@@ -1448,13 +1498,13 @@ namespace interviews {
 
     using source_question_multiple_choices::source_question_multiple_choices;
     
-    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) const override;
+    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) override;
   };
   
   class source_question_from_template: public source_question
   {
     HX2A_ELEMENT(source_question_from_template, type_tag<"from_template">, source_question,
-		 (_template_name));
+		 ((_template_name, template_name_tag)));
   public:
 
     source_question_from_template(const string& label, const string& template_name):
@@ -1463,15 +1513,17 @@ namespace interviews {
     {
     }
 
-    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) const override;
+    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) override;
     
-    slot<string, template_name_tag> _template_name; // Name of the template question, if any.
+    slot<string> _template_name; // Name of the template question, if any.
   };
 
   class source_question_begin_loop: public source_question
   {
     HX2A_ELEMENT(source_question_begin_loop, type_tag<"begin_loop">, source_question,
-		 (_question, _variable, _operand));
+		 ((_question, question_tag),
+		  (_variable, variable_tag),
+		  (_operand, operand_tag)));
   public:
 
     source_question_begin_loop(const string& label, const string& q, const string& variable, const string& operand):
@@ -1482,15 +1534,15 @@ namespace interviews {
     {
     }
 
-    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) const override;
+    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) override;
 
     // The label of the question whose answer is to iterate upon.
-    slot<string, question_tag> _question; 
+    slot<string> _question; 
     // The name of the loop variable.
-    slot<string, variable_tag> _variable; 
+    slot<string> _variable; 
     // The code calculating the operand from the answer value.
     // Remove spaces for speed.
-    slot<string, operand_tag> _operand; 
+    slot<string> _operand; 
   };
 
   class source_question_end_loop: public source_question
@@ -1504,7 +1556,7 @@ namespace interviews {
     {
     }
     
-    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) const override;
+    pair<question_r, question_localization_p> compile(const questionnaire_r&, const question_infos_by_label_map&) override;
   };
 
   // End of specializations for source_question.
@@ -1512,10 +1564,13 @@ namespace interviews {
   class source_questionnaire: public header_payload
   {
     HX2A_ELEMENT(source_questionnaire, type_tag<"questionnaire">, header_payload,
-		 (_code, _name, _language, _questions));
+		 ((_code, code_tag),
+		  (_name, name_tag),
+		  (_language, language_tag),
+		  (_questions, questions_tag)));
   public:
 
-    using questions_type = own_vector<source_question, questions_tag>;
+    using questions_type = own_vector<source_question>;
     
     source_questionnaire(serial_t):
       header_payload(serial),
@@ -1552,11 +1607,11 @@ namespace interviews {
     // creates the questionnaire and the first localization, and returns both.
     pair<questionnaire_r, questionnaire_localization_r> compile(const db::connector& c) const;
 
-    slot<string, code_tag> _code;
-    slot<string, name_tag> _name;
-    slot<language_t, language_tag> _language;
+    slot<string> _code;
+    slot<string> _name;
+    slot<language_t> _language;
     // The list is ordered. All questions should have transitions to subsequent questions, no previous one.
-    own_vector<source_question, questions_tag> _questions;
+    own_vector<source_question> _questions;
   };
 
   // Localization payloads.
@@ -1572,7 +1627,8 @@ namespace interviews {
   class source_question_localization: public element<>
   {
     HX2A_ELEMENT(source_question_localization, type_tag<"l10n">, element,
-		 (_label, _text));
+		 ((_label, label_tag),
+		  (_text, text_tag)));
   public:
 
     source_question_localization(const question_localization_r& ql):
@@ -1581,17 +1637,18 @@ namespace interviews {
     {
     }
     
-    question_localization_r compile(const question_infos_by_label_map&) const;
+    question_localization_r compile(const question_infos_by_label_map&);
 
     // Dummy implementation.
-    virtual question_localization_r compile(const question_r& q) const {
+    // Non const so that specializations can do whatever they want.
+    virtual question_localization_r compile(const question_r& q){
       HX2A_ASSERT(false);
       return make<question_localization>(q, make<question_localization_body>(""));
     }
     
     // To identify which question the localization pertains to.
-    slot<string, label_tag> _label;
-    slot<string, text_tag> _text;
+    slot<string> _label;
+    slot<string> _text;
   };
 
   // Specializations of source_question_localization.
@@ -1604,14 +1661,14 @@ namespace interviews {
 
     using source_question_localization::source_question_localization;
     
-    question_localization_r compile(const question_r& q) const override;
+    question_localization_r compile(const question_r& q) override;
   };
 
   // The comment is optional.
   class source_question_localization_with_comment: public source_question_localization
   {
     HX2A_ELEMENT(source_question_localization_with_comment, type_tag<"l10n_with_comment">, source_question_localization,
-		 (_comment_label));
+		 ((_comment_label, comment_label_tag)));
   public:
 
     source_question_localization_with_comment(const question_localization_r& ql):
@@ -1622,7 +1679,7 @@ namespace interviews {
       _comment_label= qlwo->get_comment_label();
     }
     
-    slot<string, comment_label_tag> _comment_label;
+    slot<string> _comment_label;
   };
 					     
   class source_question_localization_input: public source_question_localization_with_comment
@@ -1633,13 +1690,13 @@ namespace interviews {
 
     using source_question_localization_with_comment::source_question_localization_with_comment;
     
-    question_localization_r compile(const question_r& q) const override;
+    question_localization_r compile(const question_r& q) override;
   };
 					     
   class source_question_localization_with_options: public source_question_localization_with_comment
   {
     HX2A_ELEMENT(source_question_localization_with_options, type_tag<"l10n_with_options">, source_question_localization_with_comment,
-		 (_options));
+		 ((_options, options_tag)));
   public:
 
     source_question_localization_with_options(const question_localization_r& ql):
@@ -1685,7 +1742,7 @@ namespace interviews {
       return make<question_localization>(q, qlb);
     }
     
-    own_vector<source_option_localization, options_tag> _options;
+    own_vector<source_option_localization> _options;
   };
 					     
   class source_question_localization_select: public source_question_localization_with_options
@@ -1696,7 +1753,7 @@ namespace interviews {
 
     using source_question_localization_with_options::source_question_localization_with_options;
     
-    question_localization_r compile(const question_r& q) const override;
+    question_localization_r compile(const question_r& q) override;
   };
 
   class source_question_localization_select_at_most: public source_question_localization_with_options
@@ -1709,7 +1766,7 @@ namespace interviews {
 
     source_question_localization_select_at_most(const question_localization_r&);
     
-    question_localization_r compile(const question_r& q) const override;
+    question_localization_r compile(const question_r& q) override;
   };
 					     
   class source_question_localization_select_limit: public source_question_localization_with_options
@@ -1720,7 +1777,7 @@ namespace interviews {
 
     using source_question_localization_with_options::source_question_localization_with_options;
     
-    question_localization_r compile(const question_r& q) const override;
+    question_localization_r compile(const question_r& q) override;
   };
 					     
   class source_question_localization_rank_at_most: public source_question_localization_with_options
@@ -1731,7 +1788,7 @@ namespace interviews {
 
     using source_question_localization_with_options::source_question_localization_with_options;
     
-    question_localization_r compile(const question_r& q) const override;
+    question_localization_r compile(const question_r& q) override;
   };
 					     
   class source_question_localization_rank_limit: public source_question_localization_with_options
@@ -1742,7 +1799,7 @@ namespace interviews {
 
     using source_question_localization_with_options::source_question_localization_with_options;
     
-    question_localization_r compile(const question_r& q) const override;
+    question_localization_r compile(const question_r& q) override;
   };
 					     
   // No localization for a question from template.
@@ -1752,10 +1809,13 @@ namespace interviews {
   class source_questionnaire_localization: public element<>
   {
     HX2A_ELEMENT(source_questionnaire_localization, type_tag<"questionnaire_l10n">, element,
-		 (_questionnaire_id, _title, _language, _questions));
+		 ((_questionnaire_id, questionnaire_id_tag),
+		  (_title, title_tag),
+		  (_language, language_tag),
+		  (_questions, questions_tag)));
   public:
 
-    using questions_type = own_vector<source_question, questions_tag>;
+    using questions_type = own_vector<source_question>;
     
     source_questionnaire_localization(serial_t):
       element(serial),
@@ -1774,11 +1834,11 @@ namespace interviews {
     // an interview).
     questionnaire_localization_r compile() const;
     
-    slot<doc_id, questionnaire_id_tag> _questionnaire_id;
-    slot<string, title_tag> _title;
-    slot<language_t, language_tag> _language;
+    slot<doc_id> _questionnaire_id;
+    slot<string> _title;
+    slot<language_t> _language;
     // The list is not ordered.
-    own_vector<source_question_localization, questions_tag> _questions;
+    own_vector<source_question_localization> _questions;
   };
 
   // Questionnaire localization payloads.
@@ -1787,10 +1847,10 @@ namespace interviews {
   class questionnaire_localization_id: public element<>
   {
     HX2A_ELEMENT(questionnaire_localization_id, type_tag<"questionnaire_localization_id">, element,
-		 (_questionnaire_localization_id));
+		 ((_questionnaire_localization_id, questionnaire_localization_id_tag)));
   public:
 
-    slot<doc_id, questionnaire_localization_id_tag> _questionnaire_localization_id;
+    slot<doc_id> _questionnaire_localization_id;
   };
 
   // Interview payloads.
@@ -1800,7 +1860,8 @@ namespace interviews {
   class questionnaire_and_localization_ids: public element<>
   {
     HX2A_ELEMENT(questionnaire_and_localization_ids, type_tag<"questionnaire_and_localization_ids">, element,
-		 (_questionnaire_id, _localization_id));
+		 ((_questionnaire_id, questionnaire_id_tag),
+		  (_localization_id, questionnaire_localization_id_tag)));
   public:
 
     // Strong types for code verification.
@@ -1810,25 +1871,25 @@ namespace interviews {
     {
     }
 
-    slot<doc_id, questionnaire_id_tag> _questionnaire_id;
-    slot<doc_id, questionnaire_localization_id_tag> _localization_id;
+    slot<doc_id> _questionnaire_id;
+    slot<doc_id> _localization_id;
   };
 
   // Differs from query_id only on the tag.
   class interview_id_payload: public element<>
   {
     HX2A_ELEMENT(interview_id_payload, type_tag<"interview_id_pld">, element,
-		 (_interview_id));
+		 ((_interview_id, interview_id_tag)));
   public:
 
-    slot<doc_id, interview_id_tag> _interview_id;
+    slot<doc_id> _interview_id;
   };
 
   // Same with a language.
   class interview_id_and_language_payload: public interview_id_payload
   {
     HX2A_ELEMENT(interview_id_and_language_payload, type_tag<"interview_id_and_lang_pld">, interview_id_payload,
-		 (_language));
+		 ((_language, language_tag)));
   public:
 
     interview_id_and_language_payload(serial_t):
@@ -1837,13 +1898,13 @@ namespace interviews {
     {
     }
 
-    slot<language_t, language_tag> _language;
+    slot<language_t> _language;
   };
 
   class interview_id_and_index_payload: public interview_id_payload
   {
     HX2A_ELEMENT(interview_id_and_index_payload, type_tag<"interview_id_and_index_pld">, interview_id_payload,
-		 (_index));
+		 ((_index, index_tag)));
   public:
 
     interview_id_and_index_payload(serial_t):
@@ -1852,13 +1913,17 @@ namespace interviews {
     {
     }
 
-    slot<size_t, index_tag> _index;
+    slot<size_t> _index;
   };
 
   class interview_start_payload: public element<>
   {
     HX2A_ELEMENT(interview_start_payload, type_tag<"interview_start_pld">, element,
-		 (_interview_id, _interviewee_id, _interviewer_id, _language, _geo_location));
+		 ((_interview_id, interview_id_tag),
+		  (_interviewee_id, interviewee_id_tag),
+		  (_interviewer_id, interviewer_id_tag),
+		  (_language, language_tag),
+		  (_geo_location, geolocation_tag)));
   public:
 
     interview_start_payload(serial_t):
@@ -1871,17 +1936,18 @@ namespace interviews {
     {
     }
 
-    slot<doc_id, interview_id_tag> _interview_id;
-    slot<string, interviewee_id_tag> _interviewee_id;
-    slot<string, interviewer_id_tag> _interviewer_id;
-    slot<language_t, language_tag> _language;
-    own<geolocation, geolocation_tag> _geo_location;
+    slot<doc_id> _interview_id;
+    slot<string> _interviewee_id;
+    slot<string> _interviewer_id;
+    slot<language_t> _language;
+    own<geolocation> _geo_location;
   };
 
   class choice_payload: public element<>
   {
     HX2A_ELEMENT(choice_payload, type_tag<"choice_pld">, element,
-		 (_index, _comment));
+		 ((_index, index_tag),
+		  (_comment, comment_tag)));
   public:
 
     choice_payload(const choice_r& c):
@@ -1891,8 +1957,8 @@ namespace interviews {
     }
 
     // Starts at 0.
-    slot<size_t, index_tag> _index;
-    slot<string, comment_tag> _comment;
+    slot<size_t> _index;
+    slot<string> _comment;
   };
 
   // An answer contents. This type is highly polymorphic, as it contains various kinds of GUI-captured data,
@@ -1900,7 +1966,8 @@ namespace interviews {
   class answer_payload: public element<>
   {
     HX2A_ELEMENT(answer_payload, type_tag<"answer_pld">, element,
-		 (_interview_id, _geo_location));
+		 ((_interview_id, interview_id_tag),
+		  (_geo_location, geolocation_tag)));
   public:
 
     answer_payload(
@@ -1924,8 +1991,8 @@ namespace interviews {
       return make<answer_body>();
     }
     
-    slot<doc_id, interview_id_tag> _interview_id;
-    own<geolocation, geolocation_tag> _geo_location;
+    slot<doc_id> _interview_id;
+    own<geolocation> _geo_location;
   };
 
   // Specializations for answer_payload.
@@ -1945,38 +2012,38 @@ namespace interviews {
   class answer_with_comment_payload: public answer_payload
   {
     HX2A_ELEMENT(answer_with_comment_payload, type_tag<"answer_with_comment_pld">, answer_payload,
-		 (_comment));
+		 ((_comment, comment_tag)));
   public:
     
-    slot<string, comment_tag> _comment;
+    slot<string> _comment;
   };
   
   class answer_input_payload: public answer_with_comment_payload
   {
     HX2A_ELEMENT(answer_input_payload, type_tag<"answer_input_pld">, answer_with_comment_payload,
-		 (_input));
+		 ((_input, input_tag)));
   public:
 
     answer_body_r compile(const question_body_r&, const question_localization_body_r&) const override;
     
-    slot<string, input_tag> _input;
+    slot<string> _input;
   };
 
   class answer_select_payload: public answer_with_comment_payload
   {
     HX2A_ELEMENT(answer_select_payload, type_tag<"answer_select_pld">, answer_with_comment_payload,
-		 (_choice));
+		 ((_choice, choice_tag)));
   public:
 
     answer_body_r compile(const question_body_r&, const question_localization_body_r&) const override;
     
-    own<choice_payload, choice_tag> _choice;
+    own<choice_payload> _choice;
   };
 
   class answer_multiple_choices_payload: public answer_with_comment_payload
   {
     HX2A_ELEMENT(answer_multiple_choices_payload, type_tag<"answer_multiple_choices_pld">, answer_with_comment_payload,
-		 (_choices));
+		 ((_choices, choices_tag)));
   public:
 
     void push_choice_back(const choice_payload_r& c){
@@ -1994,7 +2061,7 @@ namespace interviews {
       }
     }
 
-    own_vector<choice_payload, choices_tag> _choices;
+    own_vector<choice_payload> _choices;
   };
 
   class answer_select_at_most_payload: public answer_multiple_choices_payload
@@ -2038,10 +2105,10 @@ namespace interviews {
   class submit_answer_payload: public interview_id_payload
   {
     HX2A_ELEMENT(submit_answer_payload, type_tag<"submit_answer_pld">, interview_id_payload,
-		 (_answer));
+		 ((_answer, answer_tag)));
   public:
     
-    own<answer_payload, answer_tag> _answer;
+    own<answer_payload> _answer;
   };
   
   // To update an answer, adds the answer's index. Cannot just give the label of the question as with loops several
@@ -2049,16 +2116,17 @@ namespace interviews {
   class answer_revise_payload: public submit_answer_payload
   {
     HX2A_ELEMENT(answer_revise_payload, type_tag<"answer_revise_pld">, submit_answer_payload,
-		 (_index));
+		 ((_index, index_tag)));
   public:
     
-    slot<size_t, index_tag> _index;
+    slot<size_t> _index;
   };
 
   class choice_data: public element<>
   {
     HX2A_ELEMENT(choice_data, type_tag<"choice_data_pld">, element,
-		 (_index, _comment));
+		 ((_index, index_tag),
+		  (_comment, comment_tag)));
   public:
 
     choice_data(const choice_r& ch):
@@ -2068,15 +2136,20 @@ namespace interviews {
     }
     
     // Starts at 0.
-    slot<size_t, index_tag> _index;
-    slot<string, comment_tag> _comment;
+    slot<size_t> _index;
+    slot<string> _comment;
   };
 
   // Type used when downloading the answer data in an interview.
   class answer_data: public element<>
   {
     HX2A_ELEMENT(answer_data, type_tag<"answer_data">, element,
-		 (_label, _ip_address, _timestamp, _elapsed, _total_elapsed, _geo_location));
+		 ((_label, label_tag),
+		  (_ip_address, ip_address_tag),
+		  (_timestamp, timestamp_tag),
+		  (_elapsed, elapsed_tag),
+		  (_total_elapsed, total_elapsed_tag),
+		  (_geo_location, geolocation_tag)));
   public:
 
     answer_data(
@@ -2101,12 +2174,12 @@ namespace interviews {
     answer_data(const answer_r&, time_t start_timestamp);
 
     // The label must be present, otherwise there is no way to figure out which question the answer is for.
-    slot<string, label_tag> _label;
-    slot<string, ip_address_tag> _ip_address;
-    slot<time_t, timestamp_tag> _timestamp;
-    slot<time_t, elapsed_tag> _elapsed;
-    slot<time_t, total_elapsed_tag> _total_elapsed;
-    own<geolocation, geolocation_tag> _geo_location;
+    slot<string> _label;
+    slot<string> _ip_address;
+    slot<time_t> _timestamp;
+    slot<time_t> _elapsed;
+    slot<time_t> _total_elapsed;
+    own<geolocation> _geo_location;
   };
 
   // Specializations of answer_data.
@@ -2133,7 +2206,7 @@ namespace interviews {
   class answer_data_with_comment: public answer_data
   {
     HX2A_ELEMENT(answer_data_with_comment, type_tag<"answer_data_with_comment">, answer_data,
-		 (_comment));
+		 ((_comment, comment_tag)));
   public:
 
     answer_data_with_comment(
@@ -2150,13 +2223,13 @@ namespace interviews {
     {
     }
     
-    slot<string, comment_tag> _comment;
+    slot<string> _comment;
   };
   
   class answer_data_input: public answer_data_with_comment
   {
     HX2A_ELEMENT(answer_data_input, type_tag<"answer_data_input">, answer_data_with_comment,
-		 (_input));
+		 ((_input, input_tag)));
   public:
 
     answer_data_input(
@@ -2174,13 +2247,13 @@ namespace interviews {
     {
     }
 
-    slot<string, input_tag> _input;
+    slot<string> _input;
   };
 
   class answer_data_select: public answer_data_with_comment
   {
     HX2A_ELEMENT(answer_data_select, type_tag<"answer_data_select">, answer_data_with_comment,
-		 (_choice));
+		 ((_choice, choice_tag)));
   public:
 
     answer_data_select(
@@ -2203,16 +2276,16 @@ namespace interviews {
       return *_choice;
     }
 
-    own<choice_payload, choice_tag> _choice;
+    own<choice_payload> _choice;
   };
   
   class answer_data_multiple_choices: public answer_data_with_comment
   {
     HX2A_ELEMENT(answer_data_multiple_choices, type_tag<"answer_data_multiple_choices">, answer_data_with_comment,
-		 (_choices));
+		 ((_choices, choices_tag)));
   public:
 
-    using choices_type = own_list<choice_payload, choices_tag>;
+    using choices_type = own_list<choice_payload>;
 
     // The choices are built separately.
     answer_data_multiple_choices(
@@ -2279,7 +2352,7 @@ namespace interviews {
   class user_data: public element<>
   {
     HX2A_ELEMENT(user_data, type_tag<"user_data_pld">, element,
-		 (_id));
+		 ((_id, id_tag)));
   public:
 
     // Strong type for code verification.
@@ -2288,28 +2361,36 @@ namespace interviews {
     {
     }
     
-    slot<doc_id, id_tag> _id;
+    slot<doc_id> _id;
   };
 
   // E.g. to download the entire interview data, without any localization.
   class interview_data: public element<>
   {
     HX2A_ELEMENT(interview_data, type_tag<"interview_data_pld">, element,
-		 (_start_ip_address, _start_timestamp, _start_geolocation, _interviewee_id, _interviewer_id, _interviewer_user, _language, _answers, _state));
+		 ((_start_ip_address, start_ip_address_tag),
+		  (_start_timestamp, start_timestamp_tag),
+		  (_start_geolocation, start_geolocation_tag),
+		  (_interviewee_id, interviewee_id_tag),
+		  (_interviewer_id, interviewer_id_tag),
+		  (_interviewer_user, interviewer_user_tag),
+		  (_language, language_tag),
+		  (_answers, answers_tag),
+		  (_state, state_tag)));
   public:
 
     interview_data(const interview_r&);
     
-    slot<string, start_ip_address_tag> _start_ip_address;
-    slot<time_t, start_timestamp_tag> _start_timestamp;
-    own<geolocation, start_geolocation_tag> _start_geolocation;
-    slot<string, interviewee_id_tag> _interviewee_id;
-    slot<string, interviewer_id_tag> _interviewer_id;
+    slot<string> _start_ip_address;
+    slot<time_t> _start_timestamp;
+    own<geolocation> _start_geolocation;
+    slot<string> _interviewee_id;
+    slot<string> _interviewer_id;
     // Own so that when not present nothing is sent to the client.
-    own<user_data, interviewer_user_tag> _interviewer_user;
-    slot<language_t, language_tag> _language;
-    own_list<answer_data, answers_tag> _answers;
-    slot<interview::state_t, state_tag> _state;
+    own<user_data> _interviewer_user;
+    slot<language_t> _language;
+    own_list<answer_data> _answers;
+    slot<interview::state_t> _state;
   };
 
   // Same including localized data, e.g. for review after answering all the questionnaire.
@@ -2318,7 +2399,8 @@ namespace interviews {
   class localized_choice_data: public choice_data
   {
     HX2A_ELEMENT(localized_choice_data, type_tag<"localized_choice_data_pld">, choice_data,
-		 (_label, _comment_label));
+		 ((_label, label_tag),
+		  (_comment_label, comment_label_tag)));
   public:
 
     localized_choice_data(const choice_r& ch):
@@ -2338,8 +2420,8 @@ namespace interviews {
     {
     }
 
-    slot<string, label_tag> _label;
-    slot<string, comment_label_tag> _comment_label;
+    slot<string> _label;
+    slot<string> _comment_label;
   };
 
   // Type used to view an interview answer with the original or a selected localization. It contains both the question and
@@ -2347,7 +2429,8 @@ namespace interviews {
   class localized_answer_data: public element<>
   {
     HX2A_ELEMENT(localized_answer_data, type_tag<"l7d_answer_data">, element,
-		 (_label, _text));
+		 ((_label, label_tag),
+		  (_text, text_tag)));
   public:
 
     localized_answer_data(
@@ -2359,8 +2442,8 @@ namespace interviews {
     {
     }
     
-    slot<string, label_tag> _label;
-    slot<string, text_tag> _text;
+    slot<string> _label;
+    slot<string> _text;
   };
 
   // Specializations of localized_answer_data.
@@ -2383,7 +2466,8 @@ namespace interviews {
   class localized_answer_data_with_comment: public localized_answer_data
   {
     HX2A_ELEMENT(localized_answer_data_with_comment, type_tag<"l7d_answer_data_with_comment">, localized_answer_data,
-		 (_comment_label, _comment));
+		 ((_comment_label, comment_label_tag),
+		  (_comment, comment_tag)));
   public:
 
     localized_answer_data_with_comment(
@@ -2398,14 +2482,14 @@ namespace interviews {
     {
     }
     
-    slot<string, comment_label_tag> _comment_label;
-    slot<string, comment_tag> _comment;
+    slot<string> _comment_label;
+    slot<string> _comment;
   };
 
   class localized_answer_data_input: public localized_answer_data_with_comment
   {
     HX2A_ELEMENT(localized_answer_data_input, type_tag<"l7d_answer_data_input">, localized_answer_data_with_comment,
-		 (_input));
+		 ((_input, input_tag)));
   public:
 
     localized_answer_data_input(
@@ -2420,13 +2504,13 @@ namespace interviews {
     {
     }
     
-    slot<string, input_tag> _input;
+    slot<string> _input;
   };
   
   class localized_answer_data_with_options: public localized_answer_data_with_comment
   {
     HX2A_ELEMENT(localized_answer_data_with_options, type_tag<"l7d_answer_data_with_options">, localized_answer_data_with_comment,
-		 (_options));
+		 ((_options, options_tag)));
   public:
 
     localized_answer_data_with_options(
@@ -2440,13 +2524,13 @@ namespace interviews {
     {
     }
     
-    own_vector<source_option, options_tag> _options;
+    own_vector<source_option> _options;
   };
   
   class localized_answer_data_select: public localized_answer_data_with_options
   {
     HX2A_ELEMENT(localized_answer_data_select, type_tag<"l7d_answer_data_select">, localized_answer_data_with_options,
-		 (_choice));
+		 ((_choice, choice_tag)));
   public:
 
     localized_answer_data_select(
@@ -2461,13 +2545,13 @@ namespace interviews {
     }
     
     // The localization is already on the options, we just need the index.
-    own<choice_payload, choice_tag> _choice;
+    own<choice_payload> _choice;
   };
   
   class localized_answer_data_multiple_choices: public localized_answer_data_with_options
   {
     HX2A_ELEMENT(localized_answer_data_multiple_choices, type_tag<"l7d_answer_data_multiple_choices">, localized_answer_data_with_options,
-		 (_choices));
+		 ((_choices, choices_tag)));
   public:
 
     localized_answer_data_multiple_choices(
@@ -2482,7 +2566,7 @@ namespace interviews {
     }
 
     // The localization is already on the options, we just need the index.
-    own_vector<choice_payload, choices_tag> _choices;
+    own_vector<choice_payload> _choices;
   };
   
   class localized_answer_data_select_at_most: public localized_answer_data_multiple_choices
@@ -2527,7 +2611,9 @@ namespace interviews {
   class localized_answer_data_and_more_payload: public element<>
   {
     HX2A_ELEMENT(localized_answer_data_and_more_payload, type_tag<"l7d_answer_data_and_more_pld">, element,
-		 (_answer, _index, _more));
+		 ((_answer, answer_tag),
+		  (_index, index_tag),
+		  (_more, more_tag)));
   public:
 
     localized_answer_data_and_more_payload(
@@ -2541,16 +2627,21 @@ namespace interviews {
     {
     }
 
-    own<localized_answer_data, answer_tag> _answer;
-    slot<size_t, index_tag> _index;
-    slot<bool, more_tag> _more;
+    own<localized_answer_data> _answer;
+    slot<size_t> _index;
+    slot<bool> _more;
   };
   
   // Type used to view a whole interview with the original or a selected localization.
   class localized_interview_data: public element<>
   {
     HX2A_ELEMENT(localized_interview_data, type_tag<"l7d_interview_data">, element,
-		 (_interviewee_id, _interviewer_id, _interviewer_user, _language, _answers, _state));
+		 ((_interviewee_id, interviewee_id_tag),
+		  (_interviewer_id, interviewer_id_tag),
+		  (_interviewer_user, interviewer_user_tag),
+		  (_language, language_tag),
+		  (_answers, answers_tag),
+		  (_state, state_tag)));
   public:
 
     localized_interview_data(const interview_r&);
@@ -2563,13 +2654,13 @@ namespace interviews {
     //   In that case, the cheaper interview data are calculated.
     localized_interview_data(const interview_r&, language_t);
     
-    slot<string, interviewee_id_tag> _interviewee_id;
-    slot<string, interviewer_id_tag> _interviewer_id;
+    slot<string> _interviewee_id;
+    slot<string> _interviewer_id;
     // Own so that when not present nothing is sent to the client.
-    own<user_data, interviewer_user_tag> _interviewer_user;
-    slot<language_t, language_tag> _language;
-    own_list<localized_answer_data, answers_tag> _answers;
-    slot<interview::state_t, state_tag> _state;
+    own<user_data> _interviewer_user;
+    slot<language_t> _language;
+    own_list<localized_answer_data> _answers;
+    slot<interview::state_t> _state;
   };
   
   // Campaign payloads.
@@ -2577,7 +2668,11 @@ namespace interviews {
   class campaign_data: public element<>
   {
     HX2A_ELEMENT(campaign_data, type_tag<"campaign_pld">, element,
-		 (_name, _questionnaire_id, _start, _duration, _interview_lifespan));
+		 ((_name, name_tag),
+		  (_questionnaire_id, questionnaire_id_tag),
+		  (_start, start_tag),
+		  (_duration, duration_tag),
+		  (_interview_lifespan, interview_lifespan_tag)));
   public:
 
     campaign_data(serial_t):
@@ -2599,11 +2694,11 @@ namespace interviews {
     {
     }
 
-    slot<string, name_tag> _name;
-    slot<doc_id, questionnaire_id_tag> _questionnaire_id;
-    slot<time_t, start_tag> _start;
-    slot<time_t, duration_tag> _duration;
-    slot<time_t, interview_lifespan_tag> _interview_lifespan;
+    slot<string> _name;
+    slot<doc_id> _questionnaire_id;
+    slot<time_t> _start;
+    slot<time_t> _duration;
+    slot<time_t> _interview_lifespan;
   };
 
   using campaign_create_payload = campaign_data;
@@ -2614,20 +2709,20 @@ namespace interviews {
   class campaign_update_payload: public campaign_data
   {
     HX2A_ELEMENT(campaign_update_payload, type_tag<"campaign_update_pld">, campaign_data,
-		 (_campaign_id));
+		 ((_campaign_id, campaign_id_tag)));
   public:
 
-    slot<doc_id, campaign_id_tag> _campaign_id;
+    slot<doc_id> _campaign_id;
   };
   
   // Differs from query_id only on the tag.
   class campaign_id: public element<>
   {
     HX2A_ELEMENT(campaign_id, type_tag<"campaign_id">, element,
-		 (_campaign_id));
+		 ((_campaign_id, campaign_id_tag)));
   public:
 
-    slot<doc_id, campaign_id_tag> _campaign_id;
+    slot<doc_id> _campaign_id;
   };
 
   // This type is used to give to the client the next question in the language selected. This is why
@@ -2637,7 +2732,10 @@ namespace interviews {
   class localized_question: public header_payload
   {
     HX2A_ELEMENT(localized_question, type_tag<"l7d_question">, header_payload,
-		 (_label, _style, _text, _progress));
+		 ((_label, label_tag),
+		  (_style, style_tag),
+		  (_text, text_tag),
+		  (_progress, progress_tag)));
   public:
 
     localized_question(
@@ -2657,12 +2755,12 @@ namespace interviews {
     }
 
     // Having the label allows the GUI to view the previous question.
-    slot<string, label_tag> _label;
-    slot<string, style_tag> _style;
-    slot<string, text_tag> _text;
+    slot<string> _label;
+    slot<string> _style;
+    slot<string> _text;
     // This is just an indicator. In case of loop in the questionnaire, it won't take them into account.
     // No need to have more than an unsigned integral type giving the %.
-    slot<progress_t, progress_tag> _progress;
+    slot<progress_t> _progress;
   };
 
   // Specializations for localized_question.
@@ -2670,7 +2768,7 @@ namespace interviews {
   class localized_question_message: public localized_question
   {
     HX2A_ELEMENT(localized_question_message, type_tag<"l7d_question_message">, localized_question,
-		 (_is_final));
+		 ((_is_final, is_final_tag)));
   public:
     
     // A message is not necessarily final.
@@ -2687,14 +2785,15 @@ namespace interviews {
       _is_final(*this, is_final)
     {
     }
-    
-    slot<bool, is_final_tag> _is_final;
+
+    // To indicate to the GUI renderer that it is the last question.
+    slot<bool> _is_final;
   };
 
   class localized_question_with_comment: public localized_question
   {
     HX2A_ELEMENT(localized_question_with_comment, type_tag<"l7d_question_with_comment">, localized_question,
-		 (_comment_label));
+		 ((_comment_label, comment_label_tag)));
   public:
 
     localized_question_with_comment(
@@ -2712,13 +2811,13 @@ namespace interviews {
     {
     }
 
-    slot<string, comment_label_tag> _comment_label;
+    slot<string> _comment_label;
   };
 
   class localized_question_input: public localized_question_with_comment
   {
     HX2A_ELEMENT(localized_question_input, type_tag<"l7d_question_input">, localized_question_with_comment,
-		 (_optional));
+		 ((_optional, optional_tag)));
   public:
 
     localized_question_input(
@@ -2736,13 +2835,13 @@ namespace interviews {
     {
     }
 
-    slot<bool, optional_tag> _optional;
+    slot<bool> _optional;
   };
   
   class localized_question_with_options: public localized_question_with_comment
   {
     HX2A_ELEMENT(localized_question_with_options, type_tag<"l7d_question_with_options">, localized_question_with_comment,
-		 (_options));
+		 ((_options, options_tag)));
   public:
 
     localized_question_with_options(
@@ -2759,7 +2858,7 @@ namespace interviews {
     {
     }
     
-    own_vector<source_option, options_tag> _options;
+    own_vector<source_option> _options;
   };
 
   class localized_question_select: public localized_question_with_options
@@ -2785,7 +2884,7 @@ namespace interviews {
   class localized_question_multiple_choices: public localized_question_with_options
   {
     HX2A_ELEMENT(localized_question_multiple_choices, type_tag<"l7d_question_multiple_choices">, localized_question_with_options,
-		 (_limit));
+		 ((_limit, limit_tag)));
   public:
 
     localized_question_multiple_choices(
@@ -2803,7 +2902,7 @@ namespace interviews {
     {
     }
 
-    slot<limit_t::value_type, limit_tag> _limit;
+    slot<limit_t::value_type> _limit;
   };
   
   class localized_question_select_at_most: public localized_question_multiple_choices

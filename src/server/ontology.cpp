@@ -44,7 +44,6 @@ namespace interviews {
     HX2A_ASSERT(vobj.cbegin()->first[0] == '$');
     // Removal of the '$' key from the JSON value.
     v = vobj.cbegin()->second;
-    HX2A_LOG(trace) << "Injecting variable \"" << lad->_label << "\" with value " << v << " for a loop operand.";
     oc << "let " << lad->_label.get() << '=' << v << ';' << qbl->get_operand() << ';'; 
   }
   
@@ -92,11 +91,8 @@ namespace interviews {
   
   question_p transition::run(const the_stack& ts, time_t start_timestamp){
     if (!_condition || _condition->empty()){
-      HX2A_LOG(trace) << "Transition condition is empty.";
       return _destination;
     }
-    
-    HX2A_LOG(trace) << "Evaluating the condition \"" << _condition->get_code() << "\" of a transition.";
     
     // Injecting all the variables. The questions labels are the variable names. We've already
     // checked that they are acceptable for JavaScript.
@@ -128,7 +124,6 @@ namespace interviews {
 	HX2A_ASSERT(vobj.cbegin()->first[0] == '$');
 	// Removal of the '$' key from the JSON value.
 	v = vobj.cbegin()->second;
-	HX2A_LOG(trace) << "Injecting variable \"" << q->get_label() << "\" with value " << v << " for a transition condition.";
 	_condition->push_argument(q->get_label(), v);
       }
       else{
@@ -237,12 +232,9 @@ namespace interviews {
 				       ) const {
     // Checking if we are in the most common case, to process it quickly.
     if (_text_functions.empty() && ts.empty()){
-      HX2A_LOG(trace) << "No functions or loop variables.";
       return text;
     }
 
-    HX2A_LOG(trace) << "We have a function or loop variable. Processing \"" << text << "\".";
-    
     // Keeping the function call values somewhere in case they are used several times.
     ::std::vector<::std::optional<json::value>> function_call_values(_text_functions.size());
     // This is the calculated text stream.
@@ -354,7 +346,6 @@ namespace interviews {
 		  HX2A_ASSERT(vobj.cbegin()->first[0] == '$');
 		  // Removal of the '$' key from the JSON value.
 		  v = vobj.cbegin()->second;
-		  HX2A_LOG(trace) << "Injecting variable \"" << q->get_label() << "\" with value " << v << " for a parametric text.";
 		  func->push_argument(q->get_label(), v);
 		}
 		else{
@@ -410,7 +401,6 @@ namespace interviews {
 
 	    HX2A_ASSERT(c == eval_close);
 	    string var(vars.str());
-	    HX2A_LOG(trace) << "Trying to find the loop variable " << var << " value.";
 	    json::value v = ts.get_loop_variable(lang, var);
 
 	    if (!v){
@@ -466,7 +456,8 @@ namespace interviews {
     // In case additional checks are necessary, they should be more streamlined, in a single pass.
     check_orphans();
   }
-  
+
+  // Checks that all questions except the first are the destination of at least one transition.
   void questionnaire::check_orphans() const {
     auto i = _questions.cbegin();
     auto e = _questions.cend();
@@ -476,7 +467,8 @@ namespace interviews {
       return;
     }
 
-    // Let's put all first question transitions destinations in a set.
+    // We treat the first question differently, as it does not need to be the target of a transition.
+    // Let's put all the transitions destinations for the first question in a set.
     std::set<question*> questions_set;
     question_p if_first = *i;
     HX2A_ASSERT(if_first);
@@ -1521,7 +1513,6 @@ answer_data_r answer_body_select_at_most::make_answer_data(const answer_r& a, ti
 
   // Calculating the stack up to the answer index specified, that answer excluded.
   void interview::calculate(the_stack& ts, history_type::const_iterator pos) const {
-    HX2A_LOG(trace) << "Calculating the stack up to an answer index.";
     HX2A_ASSERT(!ts.size());
     
     if constexpr (debug_mode){
@@ -1531,7 +1522,6 @@ answer_data_r answer_body_select_at_most::make_answer_data(const answer_r& a, ti
 	entry_r e = **pos;
 	
 	if (!dynamic_cast<entry_answer*>(&e.get())){
-	  HX2A_LOG(trace) << "Answer index does not point at an answer.";
 	  throw internal_error();
 	}
       }
@@ -1633,7 +1623,6 @@ answer_data_r answer_body_select_at_most::make_answer_data(const answer_r& a, ti
     entry_answer* ea = dynamic_cast<entry_answer*>(&e.get());
 
     if (!ea){
-      HX2A_LOG(trace) << "revise_answer: While revising an answer, history iterator does not point at an answer.";
       throw internal_error();
     }
 
@@ -1657,42 +1646,35 @@ answer_data_r answer_body_select_at_most::make_answer_data(const answer_r& a, ti
     nts.replace_answer(na);
     // We can now safely replace the previous answer. We use graft rather than erase and insert, because erase triggers referential integrity and
     // will remove history begin loop entries that have the previous answer as a loop operand, which would be wrong.
-    HX2A_LOG(trace) << "revise_answer: Grafting the new answer and moving ahead to the next entry in the history.";
     pa->graft(na);
     auto i = ++pos;
     auto he = _history.end();
 
     while (true){
-      HX2A_LOG(trace) << "Running the new transitions on question " << q->get_label();
       // Let's run the new transitions.
       question_r nnetq = run_transitions(nts, q);
       
       // We might be at the end of the interview.
       if (i == he){
-	HX2A_LOG(trace) << "revise_answer: We've reached the end of the history.";
 	// We need to find the next regular question. It's either the one we have or a subsequent one.
 	set_next_question(find_next_regular_question(nts, _language, nnetq, _start_timestamp));
 	return next_localized_question(nts);
       }
       
-      HX2A_LOG(trace) << "revise_answer: We've not reached the end of the history. The next question is " << nnetq->get_label();
       // Let's see what the next question was.
       HX2A_ASSERT(*i);
       // We have the next entry.
       entry_r nee = **i;
       // Let's see the associated question.
       question_r pnetq = nee->get_question();
-      HX2A_LOG(trace) << "revise_answer: The previous next question is " << pnetq->get_label() << " while the new one is " << nnetq->get_label();
       
       // Let's compare.
       if (nnetq != pnetq){
-	HX2A_LOG(trace) << "revise_answer: The next question is different.";
 	// They are different. The answer change has driven to another question.
 	// That other question might already have an answer subsequently in the history. If it does, we need to resect the history.
 	resect(i, nnetq);
 	
 	if (i == he){
-	  HX2A_LOG(trace) << "revise_answer: We've reached the end of the history.";
 	  // We have removed everything, there was no answer to the question.
 	  // We need to find the next regular question. It's either the one we have or a subsequent one.
 	  set_next_question(find_next_regular_question(nts, _language, nnetq, _start_timestamp));
@@ -1754,14 +1736,11 @@ answer_data_r answer_body_select_at_most::make_answer_data(const answer_r& a, ti
 	}
       }
 
-      HX2A_LOG(trace) << "revise_answer: The next question is the same.";
       // The transition leads to the same question.
       // It might be impacted if it is a begin loop or if it contains a calculated text.
       // If not impacted, we need to add the entry to both stacks and keep going.
       
       if (nee->is_impacted_by(pa)){
-	HX2A_LOG(trace) << "revise_answer: The next history entry is impacted.";
-	
 	// The function will return true if the entry is truly impacted.
 	// Otherwise it'll return false and will update the previous and new stacks.
 	if (process_impacted_entry(pts, nts, pa, na, _language, nee)){
@@ -1779,7 +1758,6 @@ answer_data_r answer_body_select_at_most::make_answer_data(const answer_r& a, ti
 	  return next_localized_question(nts);
 	}
 	else{
-	  HX2A_LOG(trace) << "revise_answer: The next history entry is not impacted.";
 	  // It turns out there was no impact at all.
 	  pts.process_entry(_language, nee);
 	  nts.process_entry(_language, nee);
@@ -1789,8 +1767,6 @@ answer_data_r answer_body_select_at_most::make_answer_data(const answer_r& a, ti
 	}
       }
 
-      HX2A_LOG(trace) << "revise_answer: The next history entry is not impacted.";
-      
       // Not impacted. We need to keep going as subsequent entries might be impacted still.
       pts.process_entry(_language, nee);
       nts.process_entry(_language, nee);

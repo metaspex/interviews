@@ -17,6 +17,11 @@
 // of a body actually slows down the execution. We accept that trade-off for ontology simplicity. There are
 // maintenance advantages of that. Adding new question types has a smaller impact for instance.
 
+// The final message is always the last "question" (although it is not a question technically). For the time being
+// only one type is final, but provision has been made to have several final messages.
+// It means that a message in the middle of a questionnaire, if it has no explicit transition, always automatically
+// switches to the next question.
+
 #include <iterator>
 #include <optional>
 #include <stack>
@@ -368,10 +373,11 @@ namespace interviews {
   class function: public element<>
   {
     HX2A_ELEMENT(function, type_tag<"text">, element,
-		 (_parameters, _code));
+		 ((_parameters, "p"),
+		  (_code, "c")));
   public:
 
-    using parameters_type = link_list<question, "p">;
+    using parameters_type = link_list<question>;
     
     function(const string& code):
       _parameters(*this),
@@ -445,7 +451,7 @@ namespace interviews {
   class option: public anchor<>
   {
     HX2A_ANCHOR(option, type_tag<"option">, anchor,
-		(_has_comment));
+		((_has_comment, "hc")));
   public:
 
     option(bool has_comment):
@@ -461,13 +467,14 @@ namespace interviews {
 
   private:
 
-    slot<bool, "hc"> _has_comment;
+    slot<bool> _has_comment;
   };
 
   class transition: public element<>
   {
     HX2A_ELEMENT(transition, type_tag<"transition">, element,
-		 (_condition, _destination));
+		 ((_condition, "c"),
+		  (_destination, "d")));
   public:
 
     using parameters_type = function::parameters_type;
@@ -568,8 +575,8 @@ namespace interviews {
     // qu2 == 2
     // If "qu2" is the label of the current question and the transition applies when
     // the option is 2.
-    own<function, "c"> _condition;
-    link<question, "d"> _destination;
+    own<function>  _condition;
+    link<question> _destination;
   };
 
   // To keep a mapping between cloned questions and clone questions.
@@ -630,11 +637,12 @@ namespace interviews {
   class question_body: public element<>
   {
     HX2A_ELEMENT(question_body, type_tag<"q_body">, element,
-		 (_text_functions, _style));
+		 ((_text_functions, "f"),
+		  (_style, "s")));
   public:
 
     // Using a vector as we want direct access to an element when computing parametric texts.
-    using text_functions_type = own_vector<function, "f">;
+    using text_functions_type = own_vector<function>;
     
     question_body(const string& style):
       _text_functions(*this),
@@ -694,7 +702,7 @@ namespace interviews {
     // Instead of a forced style, we might want to implement a smarter GUI, choosing the right widget
     // as a function of the question. E.g. if in a select there are too many options, it does not choose
     // a radio select but a drop down.
-    slot<string, "s"> _style;
+    slot<string> _style;
   };
 
   class question_body_message: public question_body
@@ -715,7 +723,7 @@ namespace interviews {
   class question_body_with_comment: public question_body
   {
     HX2A_ELEMENT(question_body_with_comment, type_tag<"q_body_with_comment">, question_body,
-		 (_has_comment));
+		 ((_has_comment, "hc")));
   public:
 
     question_body_with_comment(const string& style, bool has_comment):
@@ -735,7 +743,7 @@ namespace interviews {
     
   private:
     
-    slot<bool, "hc"> _has_comment;
+    slot<bool> _has_comment;
   };
   
   // A question with an input field, and an optional comment with another input field.
@@ -745,7 +753,7 @@ namespace interviews {
   class question_body_input: public question_body_with_comment
   {
     HX2A_ELEMENT(question_body_input, type_tag<"q_b_input">, question_body_with_comment,
-		 (_optional));
+		 ((_optional, "o")));
   public:
 
     question_body_input(const string& style, bool has_comment, bool optional):
@@ -763,17 +771,18 @@ namespace interviews {
   private:
 
     // Indicates whether an input is mandatory or not.
-    slot<bool, "o"> _optional;
+    slot<bool> _optional;
   };
 
   class question_body_with_options: public question_body_with_comment
   {
     HX2A_ELEMENT(question_body_with_options, type_tag<"q_o">, question_body_with_comment,
-		 (_options, _randomize));
+		 ((_options, "o"),
+		  (_randomize, "r")));
   public:
 
     // own_list so that it shrinks automatically when an option is cut.
-    using options_type = own_list<option, "o">;
+    using options_type = own_list<option>;
 
     // The randomize boolean indicates whether the GUI should randomize the options.
     question_body_with_options(const string& style, bool randomize, bool has_comment):
@@ -812,7 +821,7 @@ namespace interviews {
     options_type _options;
     // Rather than multiplying the types or making a template type, we have a boolean driving whether options should be
     // displayed randomized or not by the GUI.
-    slot<bool, "r"> _randomize;
+    slot<bool> _randomize;
   };
 
   class question_body_select: public question_body_with_options
@@ -834,7 +843,7 @@ namespace interviews {
   class question_body_multiple_choices: public question_body_with_options
   {
     HX2A_ELEMENT(question_body_multiple_choices, type_tag<"q_ms">, question_body_with_options,
-		 (_limit));
+		 ((_limit, "L")));
   public:
 
     // In case limit ends up higher than the number of options, the number of options
@@ -856,7 +865,7 @@ namespace interviews {
     
   private:
     
-    slot<size_t, "L"> _limit;
+    slot<size_t> _limit;
   };
 
   class question_body_select_at_most: public question_body_multiple_choices
@@ -931,11 +940,12 @@ namespace interviews {
   class question: public anchor<>
   {
     HX2A_ANCHOR(question, type_tag<"q">, anchor,
-		(_label, _transitions));
+		((_label, "l"),
+		 (_transitions, "t")));
   public:
 
     // own_list so that it shrinks automatically when a transition is cut.
-    using transitions_type = own_list<transition, "t">;
+    using transitions_type = own_list<transition>;
 
     enum loop_type_t {regular, begin_loop, end_loop};
 
@@ -1057,7 +1067,7 @@ namespace interviews {
     
   private:
 
-    slot<string, "l"> _label;
+    slot<string> _label;
     // Even if the source does not have any transitions, a catch-all transition will be
     // added with an empty condition. It'll transition to the next question.
     transitions_type _transitions;
@@ -1066,7 +1076,7 @@ namespace interviews {
   class question_with_body: public question
   {
     HX2A_ANCHOR(question_with_body, type_tag<"q_wb">, question,
-		(_body));
+		((_body, "b")));
   public:
 
     question_with_body(const string& label, const question_body_r& body):
@@ -1104,13 +1114,13 @@ namespace interviews {
 
   private:
     
-    own<question_body, "b"> _body;
+    own<question_body> _body;
   };
 
   class question_from_template: public question
   {
     HX2A_ANCHOR(question_from_template, type_tag<"q_ft">, question,
-		(_template_question));
+		((_template_question, "T")));
   public:
 
     question_from_template(const string& label, const template_question_r& tq):
@@ -1137,13 +1147,15 @@ namespace interviews {
     
   private:
 
-    link<template_question, "T"> _template_question;
+    link<template_question> _template_question;
   };
 
   class question_begin_loop: public question
   {
     HX2A_ANCHOR(question_begin_loop, type_tag<"q_bl">, question,
-		(_operand_question, _variable, _operand));
+		((_operand_question, "q"),
+		 (_variable, "v"),
+		 (_operand, "o")));
   public:
 
     question_begin_loop(const string& label, const question_r& q, const string& variable, const string& operand):
@@ -1196,13 +1208,13 @@ namespace interviews {
   private:
 
     // The previous question whose answer is to iterate upon.
-    link<question, "q"> _operand_question;
+    link<question> _operand_question;
     // The name of the JavaScript variable which will contain each element of the JSON vector
     // pointed at by the operand.
-    slot<string, "v"> _variable;
+    slot<string> _variable;
     // The code yielding a JSON vector from the answer to iterate upon. In most cases it'll simply be a path.
     // Must have the "R=" prefix.
-    slot<string, "o"> _operand;
+    slot<string> _operand;
   };
 
   class question_end_loop: public question
@@ -1243,7 +1255,8 @@ namespace interviews {
   class template_question_category: public root<>
   {
     HX2A_ROOT(template_question_category, type_tag<"tq_c">, 1, root,
-	      (_name, _parent));
+	      ((_name, "n"),
+	       (_parent, "p")));
   public:
 
     template_question_category(const string& name, const template_question_category_p& par):
@@ -1265,15 +1278,17 @@ namespace interviews {
 
   private:
 
-    slot<string, "n"> _name;
-    link<template_question_category, "p"> _parent;
+    slot<string> _name;
+    link<template_question_category> _parent;
   };
 
   // The label of the question is the label of the template, not the label of the question in the questionnaire.
   class template_question: public root<>
   {
     HX2A_ROOT(template_question, type_tag<"tq">, 1, root,
-	      (_category, _label, _body));
+	      ((_category, "c"),
+	       (_label, "l"),
+	       (_body, "q")));
   public:
 
     template_question(
@@ -1309,11 +1324,11 @@ namespace interviews {
 
   private:
 
-    link<template_question_category, "c"> _category;
+    link<template_question_category> _category;
     // The label is the template unique name.
-    slot<string, "l"> _label;
+    slot<string> _label;
     // There is no need for a specific template question body, we can reuse the regular question body.
-    own<question_body, "q"> _body;
+    own<question_body> _body;
   };
 
   // A questionnaire is automatically locked when a campaign is created.
@@ -1322,12 +1337,17 @@ namespace interviews {
   class questionnaire: public root<>
   {
     HX2A_ROOT(questionnaire, type_tag<"qq">, 1.1, root,
-	      (_code, _name, _logo, _questions, _locked, _change_count));
+	      ((_code, "c"),
+	       (_name, "n"),
+	       (_logo, "l"),
+	       (_questions, "q"),
+	       (_locked, "L"),
+	       (_change_count, "cc")));
   public:
 
     // The list is ordered. All questions should have transitions to subsequent questions, no previous one.
     // own_list so that it shrinks automatically when a question is cut.
-    using questions_type = own_list<question, "q">;
+    using questions_type = own_list<question>;
 
     questionnaire(
 		  const string& code,
@@ -1480,20 +1500,26 @@ namespace interviews {
       _change_count = _change_count + 1;
     }
 
-    slot<string, "c"> _code;
+    slot<string> _code;
     // Not localized, just for search.
-    slot<string, "n"> _name;
-    slot<string, "l"> _logo;
+    slot<string> _name;
+    slot<string> _logo;
     questions_type _questions;
-    slot<bool, "L"> _locked;
+    slot<bool> _locked;
     // Meant for instance to avoid spending time checking a localization if it has already been checked.
-    slot<unsigned int, "cc"> _change_count;
+    slot<unsigned int> _change_count;
   };
 
+  // Aka "project".
   class campaign: public root<>
   {
     HX2A_ROOT(campaign, type_tag<"camp">, 1, root,
-	      (_name, _questionnaire, _start, _duration, _interview_lifespan, _end));
+	      ((_name, "n"),
+	       (_questionnaire, "q"),
+	       (_start, "s"),
+	       (_duration, "d"),
+	       (_interview_lifespan, "il"),
+	       (_end, "e")));
   public:
 
     // A 0 start means that the campaign starts immediately.
@@ -1514,6 +1540,7 @@ namespace interviews {
       _interview_lifespan(*this, interview_lifespan),
       _end(*this)
     {
+      // We defer the check to the moment the campaign is created to offer some slack for survey designers.
       q->check();
       _end = start + duration;
       q->lock();
@@ -1562,12 +1589,12 @@ namespace interviews {
     
   private:
 
-    slot<string, "n"> _name;
-    link<questionnaire, "q"> _questionnaire;
-    slot<time_t, "s"> _start;
-    slot<time_t, "d"> _duration;
-    slot<time_t, "il"> _interview_lifespan;
-    slot<time_t, "e"> _end;
+    slot<string> _name;
+    link<questionnaire> _questionnaire;
+    slot<time_t> _start;
+    slot<time_t> _duration;
+    slot<time_t> _interview_lifespan;
+    slot<time_t> _end;
   };
 
   // Localization.
@@ -1576,7 +1603,9 @@ namespace interviews {
   class option_localization: public anchor<>
   {
     HX2A_ANCHOR(option_localization, type_tag<"option_l10n">, anchor,
-		(_option, _label, _comment_label));
+		((_option,  "o"),
+		 (_label, "l"),
+		 (_comment_label, "c")));
   public:
 
     // First argument only for clear report in case of error.
@@ -1616,15 +1645,15 @@ namespace interviews {
 
   private:
 
-    link<option, "o"> _option;
-    slot<string, "l"> _label;
-    slot<string, "c"> _comment_label;
+    link<option> _option;
+    slot<string> _label;
+    slot<string> _comment_label;
   };
 
   class question_localization_body: public element<>
   {
     HX2A_ELEMENT(question_localization_body, type_tag<"q_l10n_body">, element,
-		 (_text));
+		 ((_text, "t")));
   public:
 
     question_localization_body(const string& text):
@@ -1671,7 +1700,7 @@ namespace interviews {
 
   private:
 
-    slot<string, "t"> _text;
+    slot<string> _text;
   };
 
   class question_localization_body_message: public question_localization_body
@@ -1704,7 +1733,7 @@ namespace interviews {
   class question_localization_body_with_comment: public question_localization_body
   {
     HX2A_ELEMENT(question_localization_body_with_comment, type_tag<"q_l10n_b_with_comment">, question_localization_body,
-		 (_comment_label));
+		 ((_comment_label, "c")));
   public:
 
     question_localization_body_with_comment(const string& text,  const string& comment_label):
@@ -1747,7 +1776,7 @@ namespace interviews {
     
   private:
 
-    slot<string, "c"> _comment_label;
+    slot<string> _comment_label;
   };
 
   class question_localization_body_input: public question_localization_body_with_comment
@@ -1780,10 +1809,10 @@ namespace interviews {
   class question_localization_body_with_options: public question_localization_body_with_comment
   {
     HX2A_ELEMENT(question_localization_body_with_options, type_tag<"q_l10n_b_with_options">, question_localization_body_with_comment,
-		 (_options));
+		 ((_options, "o")));
   public:
 
-    using options_localizations_type = own_list<option_localization, "o">;
+    using options_localizations_type = own_list<option_localization>;
 
     question_localization_body_with_options(const string& text, const string& comment_label):
       question_localization_body_with_comment(text, comment_label),
@@ -1989,7 +2018,8 @@ namespace interviews {
   class question_localization: public anchor<>
   {
     HX2A_ANCHOR(question_localization, type_tag<"q_l10n">, anchor,
-		(_question, _body));
+		((_question, "q"),
+		 (_body, "b")));
   public:
 
     question_localization(const question_r& q, const question_localization_body_r& body):
@@ -2033,8 +2063,8 @@ namespace interviews {
 
   private:
 
-    link<question, "q"> _question;
-    own<question_localization_body, "b"> _body;
+    link<question> _question;
+    own<question_localization_body> _body;
   };
 
   using questionnaire_localization_map_per_question = std::unordered_map<const question*, question_localization_p>;
@@ -2043,7 +2073,9 @@ namespace interviews {
   class template_question_localization: public root<>
   {
     HX2A_ROOT(template_question_localization, type_tag<"tq_l10n">, 1, root,
-	      (_template_question, _language, _body));
+	      ((_template_question, "q"),
+	       (_language, "l"),
+	       (_body, "body")));
   public:
 
     template_question_localization(
@@ -2121,12 +2153,12 @@ namespace interviews {
 
   private:
 
-    link<template_question, "q"> _template_question;
+    link<template_question> _template_question;
     // The language is validated at source compilation level.
-    slot<language_t, "l"> _language;
+    slot<language_t> _language;
     // There is nothing template specific to a template question localization body, we can use
     // a regular one.
-    own<question_localization_body, "body"> _body;
+    own<question_localization_body> _body;
   };
   
   // The questions localizations are not in the same order as the questions in the questionnaire.
@@ -2137,10 +2169,15 @@ namespace interviews {
   class questionnaire_localization: public root<>
   {
     HX2A_ROOT(questionnaire_localization, type_tag<"qq_l10n">, 1, root,
-	      (_questionnaire, _questionnaire_change_count, _title, _language, _name, _questions_localizations));
+	      ((_questionnaire, "q"),
+	       (_questionnaire_change_count, "qcc"),
+	       (_title, "t"),
+	       (_language, "l"),
+	       (_name, "n"),
+	       (_questions_localizations, "Q")));
   public:
 
-    using questions_localizations_type = own_list<question_localization, "Q">;
+    using questions_localizations_type = own_list<question_localization>;
 
     questionnaire_localization(
 			       const questionnaire_r& quest,
@@ -2221,12 +2258,12 @@ namespace interviews {
   private:
 
     // Strong link, localizations will be removed automatically when a questionnaire is removed.
-    link<questionnaire, "q"> _questionnaire;
-    slot<unsigned int, "qcc"> _questionnaire_change_count;
-    slot<string, "t"> _title;
+    link<questionnaire> _questionnaire;
+    slot<unsigned int> _questionnaire_change_count;
+    slot<string> _title;
     // The language is validated at source compilation level.
-    slot<language_t, "l"> _language;
-    slot<string, "n"> _name;
+    slot<language_t> _language;
+    slot<string> _name;
     questions_localizations_type _questions_localizations;
   };
 
@@ -2238,7 +2275,9 @@ namespace interviews {
   class choice: public element<>
   {
     HX2A_ELEMENT(choice, type_tag<"choice">, element,
-		 (_option_localization, _index, _comment));
+		 ((_option_localization, "option_l10n"),
+		  (_index, "i"),
+		  (_comment, "c")));
   public:
 
     choice(
@@ -2260,10 +2299,10 @@ namespace interviews {
     
   private:
 
-    link<option_localization, "option_l10n"> _option_localization;
+    link<option_localization> _option_localization;
     // The index of the choice among the options, starting at 0.
-    slot<size_t, "i"> _index;
-    slot<string, "c"> _comment;
+    slot<size_t> _index;
+    slot<string> _comment;
   };
 
   // The type hierarchy of answer body types more or less matches the hierarchy of question body types.
@@ -2307,7 +2346,7 @@ namespace interviews {
   class answer_body_with_comment: public answer_body
   {
     HX2A_ELEMENT(answer_body_with_comment, type_tag<"answer_body_with_comment">, answer_body,
-		 (_comment));
+		 ((_comment, "c")));
   public:
 
     answer_body_with_comment(const string& comment):
@@ -2319,13 +2358,13 @@ namespace interviews {
 
   private:
     
-    slot<string, "c"> _comment; 
+    slot<string> _comment; 
   };
   
   class answer_body_input: public answer_body_with_comment
   {
     HX2A_ELEMENT(answer_body_input, type_tag<"answer_body_input">, answer_body_with_comment,
-		 (_input));
+		 ((_input, "i")));
   public:
 
     answer_body_input(const string& input, const string& comment):
@@ -2340,7 +2379,7 @@ namespace interviews {
     
   private:
     
-    slot<string, "i"> _input;
+    slot<string> _input;
   };
 
   // Just to share code.
@@ -2359,7 +2398,7 @@ namespace interviews {
   class answer_body_select: public answer_body_with_options
   {
     HX2A_ELEMENT(answer_body_select, type_tag<"answer_body_select">, answer_body_with_options,
-		 (_choice));
+		 ((_choice, "C")));
   public:
 
     answer_body_select(const choice_r& c, const string& comment):
@@ -2379,17 +2418,16 @@ namespace interviews {
     
   private:
     
-    own<choice, "C"> _choice;
+    own<choice> _choice;
   };
-
   
   class answer_body_multiple_choices: public answer_body_with_options
   {
     HX2A_ELEMENT(answer_body_multiple_choices, type_tag<"answer_body_multiple_choices">, answer_body_with_options,
-		 (_choices));
+		 ((_choices, "C")));
   public:
 
-    using choices_type = own_list<choice, "C">;
+    using choices_type = own_list<choice>;
 
     // The selection is built separately.
     answer_body_multiple_choices(const string& comment):
@@ -2481,7 +2519,14 @@ namespace interviews {
   class answer: public anchor<>
   {
     HX2A_ANCHOR(answer, type_tag<"answer">, anchor,
-		 (_question_localization, _template_question_localization, _question_from_template, _ip_address, _elapsed, _total_elapsed, _geolocation, _body));
+		((_question_localization, "ql"),
+		 (_template_question_localization, "tql"),
+		 (_question_from_template, "qft"),
+		 (_ip_address, "ip"),
+		 (_elapsed, "e"),
+		 (_total_elapsed, "te"),
+		 (_geolocation, "g"),
+		 (_body, "b")));
   public:
 
     answer(const question_localization_r& ql, string_view ip_address, time_t elapsed, time_t total_elapsed, const geolocation_p& geo, const answer_body_r& body):
@@ -2589,19 +2634,19 @@ namespace interviews {
     // Either the first link will be non-null and the two following ones will be null or
     // the first link will be null and the two following ones will be non-null.
     
-    link<question_localization, "ql"> _question_localization;
+    link<question_localization> _question_localization;
     
-    link<template_question_localization, "tql"> _template_question_localization;
-    link<question_from_template, "qft"> _question_from_template;
+    link<template_question_localization> _template_question_localization;
+    link<question_from_template> _question_from_template;
 
-    slot<string, "ip"> _ip_address;
-    slot<time_t, "e"> _elapsed;
-    slot<time_t, "te"> _total_elapsed;
+    slot<string> _ip_address;
+    slot<time_t> _elapsed;
+    slot<time_t> _total_elapsed;
     // There is a timestamp in the geolocation.
-    own<geolocation, "g"> _geolocation;
+    own<geolocation> _geolocation;
     
     // Polymorphic. Contains the response data.
-    own<answer_body, "b"> _body;
+    own<answer_body> _body;
   };
 
   class entry: public element<>
@@ -2635,7 +2680,7 @@ namespace interviews {
   class entry_answer: public entry
   {
     HX2A_ELEMENT(entry_answer, type_tag<"entry_a">, entry,
-		 (_answer));
+		 ((_answer, "a")));
   public:
 
     entry_answer(const answer_r& a):
@@ -2659,13 +2704,15 @@ namespace interviews {
 
   private:
 
-    own<answer, "a"> _answer;
+    own<answer> _answer;
   };
   
   class entry_begin_loop: public entry
   {
     HX2A_ELEMENT(entry_begin_loop, type_tag<"entry_bl">, entry,
-		 (_question_begin_loop, _loop_operand_answer, _index));
+		 ((_question_begin_loop, "qbl"), 
+		  (_loop_operand_answer, "loa"),
+		  (_index, "i")));
   public:
 
     entry_begin_loop(const question_begin_loop_r& qbl, const answer_r& loop_answer, size_t index):
@@ -2700,19 +2747,19 @@ namespace interviews {
 
   private:
 
-    link<question_begin_loop, "qbl"> _question_begin_loop;
+    link<question_begin_loop> _question_begin_loop;
     // The link to the loop operand answer must be weak, otherwise if we ever erase an answer,
     // the corresponding answer erasure a strong link would remove the entry begin loop too,
     // which is incorrect.
-    weak_link<answer, "loa"> _loop_operand_answer;
-    slot<size_t, "i"> _index;
+    weak_link<answer> _loop_operand_answer;
+    slot<size_t> _index;
   };
 
   // It could bear a link pointing at its matching begin loop if it becomes handy.
   class entry_end_loop: public entry
   {
     HX2A_ELEMENT(entry_end_loop, type_tag<"entry_el">, entry,
-		 (_question_end_loop));
+		 ((_question_end_loop, "qel")));
   public:
 
     entry_end_loop(const question_end_loop_r& qel):
@@ -2734,7 +2781,7 @@ namespace interviews {
 
   private:
 
-    link<question_end_loop, "qel"> _question_end_loop;
+    link<question_end_loop> _question_end_loop;
   };
   
   class the_stack_frame
@@ -3061,11 +3108,22 @@ namespace interviews {
   class interview: public root<>
   {
     HX2A_ROOT(interview, type_tag<"i">, 1.1, root,
-	      (_campaign, _start_ip_address, _start_timestamp, _start_geolocation, _interviewee_id, _interviewer_id, _interviewer_user, _language, _questionnaire_localization, _history, _state, _next_question));
+	      ((_campaign, "c"),
+	       (_start_ip_address, "sip"),
+	       (_start_timestamp, "sts"),
+	       (_start_geolocation, "start_geolocation"),
+	       (_interviewee_id, "iee"),
+	       (_interviewer_id, "ier"),
+	       (_interviewer_user, "iu"),
+	       (_language, "l"),
+	       (_questionnaire_localization, "l10n"),
+	       (_history, "h"),
+	       (_state, "s"),
+	       (_next_question, "n")));
     
   public:
 
-    using history_type = own_list<entry, "h">;
+    using history_type = own_list<entry>;
 
     enum state_t {
 		  initiated = 0, // Interview just created and not started.
@@ -3408,33 +3466,33 @@ namespace interviews {
     // returned. In case the question is not found, the history end iterator is returned.
     void resect(history_type::iterator& pos, const question_r&);
     
-    link<campaign, "c"> _campaign;
-    slot<string, "sip"> _start_ip_address;
+    link<campaign> _campaign;
+    slot<string> _start_ip_address;
     // There is also a timestamp in the geolocation. The one below is a server-side one, the geolocation one
     // is a client-side one. They can be compared for geolocation spoofing for instance...
-    slot<time_t, "sts"> _start_timestamp;
-    own<geolocation, "start_geolocation"> _start_geolocation;
-    slot<string, "iee"> _interviewee_id;
-    slot<string, "ier"> _interviewer_id;
+    slot<time_t> _start_timestamp;
+    own<geolocation> _start_geolocation;
+    slot<string> _interviewee_id;
+    slot<string> _interviewer_id;
     // Weak because we don't want the interview to be removed when the interviewer is removed.
-    weak_link<user, "iu"> _interviewer_user;
+    weak_link<user> _interviewer_user;
     // So that we remember in which language the interview was conducted in.
     // We do not want the interview to be removed if the localization has been removed. So
     // we keep the language, and the link to the localization is weak.
     // It also allows to index easily.
-    slot<language_t, "l"> _language;
+    slot<language_t> _language;
     // If the localization is removed, the interview is removed. When the interview is not started yet, there
     // is no questionnaire localization. It appears once a language has been selected during start.
-    link<questionnaire_localization, "l10n"> _questionnaire_localization;
+    link<questionnaire_localization> _questionnaire_localization;
     // Answers or begin/end loops in succession.
     history_type _history;
-    slot<state_t, "s"> _state;
+    slot<state_t> _state;
     // Next non loop question. It can be regular or template. Once an interview has been started, this link will
     // never be null. Once the final question is reached, that link will keep pointing at it.
     // When an interviewee comes back to an interview, without that link, we would have to rerun the transitions
     // to find the next question again. As transitions can be random, it would not be reliable.
     // A strong link would be more costly and unnecessary.
-    weak_link<question, "n"> _next_question;
+    weak_link<question> _next_question;
   };
 
   // Inlines.

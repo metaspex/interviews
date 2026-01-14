@@ -66,6 +66,8 @@ Interviews supports the following:
 
 - Loops with unlimited nested levels are allowed.
 
+- Question prompts can be parameterized. It is possible to reuse previous answers or prompts in the text of questions, and apply a function to each parameter. Combined with loops, this drastically cuts down the number of questions to specify.
+
 - Template questions can be defined to be stored in a template library, and reused in different questionnaires (e.g., demographics).
 
 - Interviews exposes HTTP JSON services (in and out) which can be interfaced with any GUI technology, including thin clients without much logic (e.g. a browser performing only display). All business logic is run in the back end.
